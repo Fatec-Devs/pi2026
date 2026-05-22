@@ -9,13 +9,9 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function MenuScreen() {
   const buttons = [
-    "Cadastrar Novo Serviço",
-    "Cadastrar Materiais",
+    "Solicitar Novo Serviço",
     "Serviços Ativos",
-    "Serviços Finalizados",
-    "Clientes Cadastrados",
-    "Verificar Estoque",
-    "Finanças"
+    "Serviços Finalizados"
   ];
 
   return (
