@@ -32,6 +32,22 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+.env.local
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Expo
+.expo-shared/
+
+# logs
+*.log
+
+# other lockfiles
+yarn.lock
+pnpm-lock.yaml
 
 # typescript
 *.tsbuildinfo
