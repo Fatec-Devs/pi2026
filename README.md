@@ -79,8 +79,8 @@ Objetivo: arquitetura simples, profissional, escalável e rápida para equipe ac
 ### `Client`
 - `userId`, `document`, `address`, `notes`
 
-### `Vehicle`
-- `clientId`, `plate`, `brand`, `model`, `year`, `color`, `mileage`
+### `Machine`
+- `name`, `brand`, `model`, `serialNumber`, `location`, `status`, `active`
 
 ### `ServiceOrder`
 - `clientId`, `machineId`, `status`, `services[]`, `materials[]`, `laborCost`, `partsCost`, `totalCost`, `approvedAt`, `startedAt`, `finishedAt`
