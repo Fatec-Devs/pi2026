@@ -1,23 +1,24 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Redirect } from 'expo-router';
+import { useAuth } from '../src/contexts/AuthContext';
+import { View, ActivityIndicator } from 'react-native';
 
-export default function Page() {
-  return (
-    <View style={styles.container}>
-      <View style={styles.main}>
-        <Text style={styles.title}>Hello World</Text>
-        <Text style={styles.subtitle}>This is the first page of your app.</Text>
+export default function Index() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#2563eb" />
       </View>
-    </View>
-  );
-}
+    );
+  }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    padding: 24,
-  },
-  main: {
+  if (isAuthenticated) {
+    return <Redirect href="/(app)/(tabs)" />;
+  }
+
+  return <Redirect href="/(auth)/login" />;
+}
     flex: 1,
     justifyContent: "center",
     maxWidth: 960,
