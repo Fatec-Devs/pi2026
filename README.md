@@ -266,3 +266,18 @@ export interface CreateServiceOrderDTO {
 - Indicador de estoque mínimo (badge vermelho)
 
 ---
+
+## 14) MongoDB Atlas
+
+- Use `MONGO_URI` com a string `mongodb+srv://` do Atlas no backend.
+- O banco sugerido para o projeto e `pi-app-2026`.
+- Colecoes principais geradas na camada de models:
+  - `users`
+  - `clients`
+  - `machines`
+  - `serviceorders`
+  - `inventoryitems`
+  - `financialentries`
+- O backend já possui o arquivo de exemplo em `backend/.env.example` com a URI pronta para substituir pelos dados do cluster.
+
+---
