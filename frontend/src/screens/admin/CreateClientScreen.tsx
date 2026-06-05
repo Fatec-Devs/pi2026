@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { ClientForm } from '../../components/forms/ClientForm';
 import clientService from '../../services/clientService';
+import { useAuth } from '../../hooks/useAuth';
 
 /**
  * Tela de cadastro de cliente (admin)
@@ -18,19 +19,23 @@ import clientService from '../../services/clientService';
  */
 export default function CreateClientScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreateClient = async (formData: any) => {
+    if (!user) {
+      Alert.alert('Erro', 'Usuário não autenticado');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // Validações adicionais no backend
-      // Aqui você pode adicionar o userId do usuário logado se necessário
       const clientPayload = {
         ...formData,
-        userId: 'user-id-from-context', // TODO: Obter do AuthContext
+        userId: user.id,
       };
 
       const newClient = await clientService.create(clientPayload);

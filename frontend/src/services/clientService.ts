@@ -1,23 +1,16 @@
-import axios, { AxiosInstance } from 'axios';
+import apiClient from './apiClient';
 import { Client } from '../types/domain';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
-
 class ClientService {
-  private api: AxiosInstance;
-
-  constructor() {
-    this.api = axios.create({
-      baseURL: `${API_BASE_URL}/clients`,
-    });
-  }
-
   /**
    * Lista todos os clientes (requer autenticação ADMIN)
    */
   async listAll(): Promise<Client[]> {
     try {
-      const response = await this.api.get('/');
+      const response = await apiClient.get('/clients');
+      if (!Array.isArray(response.data)) {
+        throw new Error('Resposta inválida do servidor ao listar clientes');
+      }
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -29,7 +22,7 @@ class ClientService {
    */
   async getById(id: string): Promise<Client> {
     try {
-      const response = await this.api.get(`/${id}`);
+      const response = await apiClient.get(`/clients/${id}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -38,16 +31,15 @@ class ClientService {
 
   /**
    * Cria um novo cliente
-   * @param data Dados do cliente (documento, endereço, notas)
    */
   async create(data: {
+    userId: string;
     document?: string;
     address?: string;
     notes?: string;
-    userId: string;
   }): Promise<Client> {
     try {
-      const response = await this.api.post('/', data);
+      const response = await apiClient.post('/clients', data);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -59,7 +51,7 @@ class ClientService {
    */
   async update(id: string, data: Partial<Client>): Promise<Client> {
     try {
-      const response = await this.api.put(`/${id}`, data);
+      const response = await apiClient.put(`/clients/${id}`, data);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -71,21 +63,16 @@ class ClientService {
    */
   async delete(id: string): Promise<void> {
     try {
-      await this.api.delete(`/${id}`);
+      await apiClient.delete(`/clients/${id}`);
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  /**
-   * Trata erros da API
-   */
   private handleError(error: any): Error {
     if (error.response) {
       const { status, data } = error.response;
-      return new Error(
-        data?.message || `Erro na requisição: ${status}`
-      );
+      return new Error(data?.message || `Erro: ${status}`);
     }
     return new Error('Erro ao conectar com o servidor');
   }

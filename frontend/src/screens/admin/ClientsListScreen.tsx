@@ -88,10 +88,10 @@ export default function ClientsListScreen() {
     >
       <View style={styles.clientCardContent}>
         <Text style={styles.clientName} numberOfLines={1}>
-          {item.id}
+          {item.document || `Cliente ${item.id.slice(-6)}`}
         </Text>
         <Text style={styles.clientDocument} numberOfLines={1}>
-          {item.document || 'Sem documento'}
+          {item.userId ? `Usuário: ${item.userId}` : 'Sem usuário vinculado'}
         </Text>
         <Text style={styles.clientAddress} numberOfLines={2}>
           {item.address || 'Sem endereço'}

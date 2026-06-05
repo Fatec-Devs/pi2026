@@ -1,23 +1,16 @@
-import axios, { AxiosInstance } from 'axios';
+import apiClient from './apiClient';
 import { InventoryItem } from '../types/domain';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
-
 class InventoryService {
-  private api: AxiosInstance;
-
-  constructor() {
-    this.api = axios.create({
-      baseURL: `${API_BASE_URL}/inventory`,
-    });
-  }
-
   /**
-   * Lista todos os produtos em estoque (requer autenticação ADMIN)
+   * Lista todos os produtos
    */
   async listAll(): Promise<InventoryItem[]> {
     try {
-      const response = await this.api.get('/');
+      const response = await apiClient.get('/inventory');
+      if (!Array.isArray(response.data)) {
+        throw new Error('Resposta inválida do servidor ao listar produtos');
+      }
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -29,7 +22,7 @@ class InventoryService {
    */
   async getById(id: string): Promise<InventoryItem> {
     try {
-      const response = await this.api.get(`/${id}`);
+      const response = await apiClient.get(`/inventory/${id}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -37,8 +30,7 @@ class InventoryService {
   }
 
   /**
-   * Cria um novo produto no inventário
-   * @param data Dados do produto
+   * Cria um novo produto
    */
   async create(data: {
     name: string;
@@ -47,10 +39,9 @@ class InventoryService {
     quantity: number;
     minStock: number;
     unitCost: number;
-    active?: boolean;
   }): Promise<InventoryItem> {
     try {
-      const response = await this.api.post('/', data);
+      const response = await apiClient.post('/inventory', data);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -58,11 +49,11 @@ class InventoryService {
   }
 
   /**
-   * Atualiza um produto existente
+   * Atualiza um produto
    */
   async update(id: string, data: Partial<InventoryItem>): Promise<InventoryItem> {
     try {
-      const response = await this.api.put(`/${id}`, data);
+      const response = await apiClient.put(`/inventory/${id}`, data);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -70,13 +61,13 @@ class InventoryService {
   }
 
   /**
-   * Ajusta a quantidade em estoque
-   * @param id ID do produto
-   * @param quantity Quantidade a adicionar (positivo) ou remover (negativo)
+   * Ajusta quantidade em estoque
    */
   async adjustStock(id: string, quantity: number): Promise<InventoryItem> {
     try {
-      const response = await this.api.patch(`/${id}/adjust`, { quantity });
+      const response = await apiClient.patch(`/inventory/${id}/adjust`, {
+        quantity,
+      });
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -88,21 +79,16 @@ class InventoryService {
    */
   async delete(id: string): Promise<void> {
     try {
-      await this.api.delete(`/${id}`);
+      await apiClient.delete(`/inventory/${id}`);
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  /**
-   * Trata erros da API
-   */
   private handleError(error: any): Error {
     if (error.response) {
       const { status, data } = error.response;
-      return new Error(
-        data?.message || `Erro na requisição: ${status}`
-      );
+      return new Error(data?.message || `Erro: ${status}`);
     }
     return new Error('Erro ao conectar com o servidor');
   }
