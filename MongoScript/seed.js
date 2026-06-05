@@ -32,4 +32,58 @@ for (const user of seedUsers) {
   );
 }
 
-print('Basic seed completed: 1 admin and 1 common user.');
+const clients = appDb.getCollection('clients');
+const inventory = appDb.getCollection('inventoryitems');
+
+const clientUser = users.findOne({ email: 'user@pi-app-2026.com' });
+
+if (clientUser) {
+  clients.updateOne(
+    { userId: clientUser._id },
+    {
+      $setOnInsert: {
+        userId: clientUser._id,
+        document: '123.456.789-00',
+        address: 'Rua Exemplo, 100 - São Paulo/SP',
+        notes: 'Cliente de demonstração',
+      },
+    },
+    { upsert: true },
+  );
+}
+
+const seedInventory = [
+  {
+    name: 'Óleo de motor 5W30',
+    sku: 'OLEO-5W30-1L',
+    unit: 'LT',
+    quantity: 24,
+    minStock: 10,
+    unitCost: 32.5,
+    active: true,
+  },
+  {
+    name: 'Filtro de óleo',
+    sku: 'FILTRO-OLEO-01',
+    unit: 'UNIDADE',
+    quantity: 8,
+    minStock: 15,
+    unitCost: 18.9,
+    active: true,
+  },
+  {
+    name: 'Pastilha de freio dianteira',
+    sku: 'PAST-FREIO-D',
+    unit: 'PAR',
+    quantity: 5,
+    minStock: 4,
+    unitCost: 89.0,
+    active: true,
+  },
+];
+
+for (const item of seedInventory) {
+  inventory.updateOne({ sku: item.sku }, { $setOnInsert: item }, { upsert: true });
+}
+
+print('Seed completed: users, 1 client and sample inventory items.');
