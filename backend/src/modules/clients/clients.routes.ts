@@ -1,60 +1,43 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireRole } from '../../middlewares/auth.middleware';
+import * as ClientsService from './clients.service';
 
 const router = Router();
 
 router.use(authMiddleware);
 
-/**
- * GET /clients
- * Lista todos os clientes (só ADMIN)
- */
-router.get('/', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
+router.get('/', requireRole('ADMIN'), async (_req: Request, res: Response, next) => {
   try {
-    // TODO: ClientService.findAll()
-    res.json({ message: 'GET /clients - a implementar' });
+    const clients = await ClientsService.findAll();
+    res.json(clients);
   } catch (err) { next(err); }
 });
 
-/**
- * GET /clients/:id
- */
 router.get('/:id', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
   try {
-    // TODO: ClientService.findById(req.params.id)
-    res.json({ message: `GET /clients/${req.params.id} - a implementar` });
+    const client = await ClientsService.findById(req.params.id);
+    res.json(client);
   } catch (err) { next(err); }
 });
 
-/**
- * POST /clients
- * Body: { userId, document, address, notes }
- */
 router.post('/', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
   try {
-    // TODO: ClientService.create(req.body)
-    res.status(201).json({ message: 'POST /clients - a implementar' });
+    const client = await ClientsService.create(req.body);
+    res.status(201).json(client);
   } catch (err) { next(err); }
 });
 
-/**
- * PUT /clients/:id
- * Body: campos a atualizar
- */
 router.put('/:id', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
   try {
-    // TODO: ClientService.update(req.params.id, req.body)
-    res.json({ message: `PUT /clients/${req.params.id} - a implementar` });
+    const client = await ClientsService.update(req.params.id, req.body);
+    res.json(client);
   } catch (err) { next(err); }
 });
 
-/**
- * DELETE /clients/:id
- */
 router.delete('/:id', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
   try {
-    // TODO: ClientService.delete(req.params.id)
-    res.json({ message: `DELETE /clients/${req.params.id} - a implementar` });
+    await ClientsService.remove(req.params.id);
+    res.status(204).send();
   } catch (err) { next(err); }
 });
 

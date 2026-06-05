@@ -1,34 +1,50 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireRole } from '../../middlewares/auth.middleware';
+import * as InventoryService from './inventory.service';
 
 const router = Router();
 router.use(authMiddleware, requireRole('ADMIN'));
 
-// GET /inventory
 router.get('/', async (_req: Request, res: Response, next) => {
   try {
-    res.json({ message: 'GET /inventory - a implementar' });
+    const items = await InventoryService.findAll();
+    res.json(items);
   } catch (err) { next(err); }
 });
 
-// POST /inventory
+router.get('/:id', async (req: Request, res: Response, next) => {
+  try {
+    const item = await InventoryService.findById(req.params.id);
+    res.json(item);
+  } catch (err) { next(err); }
+});
+
 router.post('/', async (req: Request, res: Response, next) => {
   try {
-    res.status(201).json({ message: 'POST /inventory - a implementar' });
+    const item = await InventoryService.create(req.body);
+    res.status(201).json(item);
   } catch (err) { next(err); }
 });
 
-// PUT /inventory/:id
 router.put('/:id', async (req: Request, res: Response, next) => {
   try {
-    res.json({ message: `PUT /inventory/${req.params.id} - a implementar` });
+    const item = await InventoryService.update(req.params.id, req.body);
+    res.json(item);
   } catch (err) { next(err); }
 });
 
-// PATCH /inventory/:id/adjust
 router.patch('/:id/adjust', async (req: Request, res: Response, next) => {
   try {
-    res.json({ message: `PATCH ajuste estoque ${req.params.id} - a implementar` });
+    const { quantity } = req.body;
+    const item = await InventoryService.adjustStock(req.params.id, Number(quantity));
+    res.json(item);
+  } catch (err) { next(err); }
+});
+
+router.delete('/:id', async (req: Request, res: Response, next) => {
+  try {
+    await InventoryService.remove(req.params.id);
+    res.status(204).send();
   } catch (err) { next(err); }
 });
 

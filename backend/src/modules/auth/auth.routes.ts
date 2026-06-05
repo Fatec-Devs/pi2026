@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../../middlewares/auth.middleware';
+import * as AuthService from './auth.service';
 
 const router = Router();
 
@@ -9,8 +10,9 @@ const router = Router();
  */
 router.post('/login', async (req: Request, res: Response, next) => {
   try {
-    // TODO: AuthService.login(req.body)
-    res.json({ message: 'login - a implementar' });
+    const { email, password } = req.body;
+    const result = await AuthService.login(email, password);
+    res.json(result);
   } catch (err) { next(err); }
 });
 
@@ -31,8 +33,8 @@ router.post('/register-client', async (req: Request, res: Response, next) => {
  */
 router.get('/me', authMiddleware, async (req: Request, res: Response, next) => {
   try {
-    // TODO: AuthService.me(req.user!.userId)
-    res.json({ user: req.user });
+    const result = await AuthService.me(req.user!.userId);
+    res.json(result);
   } catch (err) { next(err); }
 });
 
