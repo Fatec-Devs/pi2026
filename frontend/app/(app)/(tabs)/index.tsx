@@ -26,7 +26,7 @@ export default function HomeScreen() {
           />
           
           <Button
-            title="Ver Minhas Ordens"
+            title="Ordens de Serviço"
             onPress={() => router.push('/(app)/(tabs)/my-orders')}
             variant="outline"
             size="large"
