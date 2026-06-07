@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://localhost:3333/api';
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3333/api';
 const TOKEN_KEY = '@pi2026:token';
 
 // API Client class para gerenciar requisições
@@ -10,16 +11,6 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    this.loadToken();
-  }
-
-  // Carrega o token do storage
-  private async loadToken() {
-    try {
-      this.token = await AsyncStorage.getItem(TOKEN_KEY);
-    } catch (error) {
-      console.error('Erro ao carregar token:', error);
-    }
   }
 
   // Define o token de autenticação
@@ -47,9 +38,9 @@ class ApiClient {
   ): Promise<T> {
     const token = await this.getToken();
     
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string> | undefined),
     };
 
     // Adiciona token se disponível
@@ -77,13 +68,17 @@ class ApiClient {
 
       // Retorna resposta JSON
       return await response.json();
-    } catch (error: any) {
-      // Propaga erro formatado
-      throw {
-        status: error.status || 500,
-        message: error.message || 'Erro de conexão',
-        code: error.code || 'NETWORK_ERROR',
-      };
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'status' in error) {
+        throw error as ApiError;
+      }
+
+      const message =
+        error instanceof TypeError
+          ? 'Não foi possível conectar ao servidor. Verifique se o backend está rodando e se o IP em .env está correto.'
+          : 'Erro de conexão';
+
+      throw { status: 500, message, code: 'NETWORK_ERROR' } satisfies ApiError;
     }
   }
 

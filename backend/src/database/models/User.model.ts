@@ -1,58 +1,38 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
+import { UserRole } from '../../types';
 
-// Interface para o documento User
-export interface IUser extends Document {
+export interface UserDocument extends Document {
   name: string;
   email: string;
   passwordHash: string;
-  role: 'ADMIN' | 'CLIENT';
+  role: UserRole;
   phone?: string;
   active: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-// Schema do User
-const UserSchema = new Schema<IUser>(
+const userSchema = new Schema<UserDocument>(
   {
-    name: {
-      type: String,
-      required: [true, 'Nome é obrigatório'],
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: [true, 'Email é obrigatório'],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Email inválido'],
-    },
-    passwordHash: {
-      type: String,
-      required: [true, 'Senha é obrigatória'],
-    },
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    passwordHash: { type: String, required: true, select: false },
     role: {
       type: String,
+      required: true,
       enum: ['ADMIN', 'CLIENT'],
-      required: [true, 'Perfil é obrigatório'],
+      default: 'CLIENT',
     },
-    phone: {
-      type: String,
-      trim: true,
-    },
-    active: {
-      type: Boolean,
-      default: true,
-    },
+    phone: { type: String, trim: true },
+    active: { type: Boolean, default: true },
   },
   {
     timestamps: true,
-  }
+    versionKey: false,
+  },
 );
 
-// Índices
-UserSchema.index({ email: 1 });
+userSchema.index({ email: 1 }, { unique: true });
 
-// Model
-export const User = mongoose.model<IUser>('User', UserSchema);
+export const UserModel = model<UserDocument>('User', userSchema);
+
+export type IUser = UserDocument;
+export const User = UserModel;

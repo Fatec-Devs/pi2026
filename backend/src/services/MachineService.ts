@@ -1,7 +1,7 @@
 import { MachineRepository } from '../repositories/MachineRepository';
 import { ClientRepository } from '../repositories/ClientRepository';
 import { AppError } from '../config/AppError';
-import { IMachine } from '../database/models/Machine.model';
+import { IMachine } from '../database/models/machine.model';
 
 export class MachineService {
   private machineRepository: MachineRepository;

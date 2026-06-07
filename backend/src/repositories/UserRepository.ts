@@ -1,4 +1,4 @@
-import { User, IUser } from '../database/models/User.model';
+import { User, IUser } from '../database/models/user.model';
 
 export class UserRepository {
   /**
@@ -20,7 +20,7 @@ export class UserRepository {
    * Busca usuário por email
    */
   async findByEmail(email: string): Promise<IUser | null> {
-    return await User.findOne({ email: email.toLowerCase() });
+    return await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
   }
 
   /**

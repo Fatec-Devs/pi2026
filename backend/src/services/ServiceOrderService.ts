@@ -2,7 +2,7 @@ import { ServiceOrderRepository } from '../repositories/ServiceOrderRepository';
 import { ClientRepository } from '../repositories/ClientRepository';
 import { MachineRepository } from '../repositories/MachineRepository';
 import { AppError } from '../config/AppError';
-import { IServiceOrder } from '../database/models/ServiceOrder.model';
+import { IServiceOrder } from '../database/models/serviceOrder.model';
 
 export class ServiceOrderService {
   private serviceOrderRepository: ServiceOrderRepository;

@@ -80,7 +80,7 @@ export class AuthService {
     // Hash da senha
     const passwordHash = await bcrypt.hash(
       data.password,
-      env.bcrypt.saltRounds
+      env.bcryptSaltRounds
     );
 
     // Cria usuário

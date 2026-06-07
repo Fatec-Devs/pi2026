@@ -1,4 +1,4 @@
-import { ServiceOrder, IServiceOrder } from '../database/models/ServiceOrder.model';
+import { ServiceOrder, IServiceOrder } from '../database/models/serviceOrder.model';
 import mongoose from 'mongoose';
 
 export class ServiceOrderRepository {

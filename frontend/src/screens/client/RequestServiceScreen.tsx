@@ -72,13 +72,17 @@ export function RequestServiceScreen() {
     setServices(newServices);
   };
 
-  const handleMachineChange = (id: string, machine: Machine) => {
-    setMachineId(id);
-    setSelectedMachine(machine);
-    if (errors.machine) {
-      setErrors((prev) => ({ ...prev, machine: undefined }));
-    }
-  };
+  const handleMachineChange = (
+  id: string | null,
+  machine: Machine | null,
+) => {
+  setMachineId(id ?? '');
+  setSelectedMachine(machine);
+
+  if (errors.machine) {
+    setErrors((prev) => ({ ...prev, machine: undefined }));
+  }
+};
 
   const validate = () => {
     const newErrors: typeof errors = {};

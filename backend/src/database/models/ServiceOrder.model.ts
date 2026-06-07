@@ -1,26 +1,24 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
+import { ServiceOrderStatus } from '../../types';
 
-// Interface para ServiceItem
-export interface IServiceItem {
+export interface ServiceOrderServiceItem {
   description: string;
   estimatedHours: number;
   price: number;
 }
 
-// Interface para MaterialUsage
-export interface IMaterialUsage {
-  inventoryItemId: mongoose.Types.ObjectId;
+export interface ServiceOrderMaterialUsage {
+  inventoryItemId: Types.ObjectId;
   quantity: number;
   unitCost: number;
 }
 
-// Interface para o documento ServiceOrder
 export interface IServiceOrder extends Document {
-  clientId: mongoose.Types.ObjectId;
-  machineId: mongoose.Types.ObjectId;
-  status: 'ORCAMENTO' | 'APROVADO' | 'EM_EXECUCAO' | 'CONCLUIDO';
-  services: IServiceItem[];
-  materials: IMaterialUsage[];
+  clientId: Types.ObjectId;
+  machineId: Types.ObjectId;
+  status: ServiceOrderStatus;
+  services: ServiceOrderServiceItem[];
+  materials: ServiceOrderMaterialUsage[];
   laborCost: number;
   partsCost: number;
   totalCost: number;
@@ -28,150 +26,75 @@ export interface IServiceOrder extends Document {
   approvedAt?: Date;
   startedAt?: Date;
   finishedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  stockAdjustmentStatus: 'PENDING' | 'APPLIED' | 'FAILED';
 }
 
-// Schema para ServiceItem
-const ServiceItemSchema = new Schema<IServiceItem>(
+const serviceOrderServiceItemSchema = new Schema<ServiceOrderServiceItem>(
   {
-    description: {
-      type: String,
-      required: [true, 'Descrição do serviço é obrigatória'],
-      trim: true,
-    },
-    estimatedHours: {
-      type: Number,
-      required: [true, 'Horas estimadas são obrigatórias'],
-      min: [0, 'Horas não podem ser negativas'],
-    },
-    price: {
-      type: Number,
-      required: [true, 'Preço é obrigatório'],
-      min: [0, 'Preço não pode ser negativo'],
-    },
+    description: { type: String, required: true, trim: true },
+    estimatedHours: { type: Number, required: true, min: 0 },
+    price: { type: Number, required: true, min: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
-// Schema para MaterialUsage
-const MaterialUsageSchema = new Schema<IMaterialUsage>(
+const serviceOrderMaterialUsageSchema = new Schema<ServiceOrderMaterialUsage>(
   {
-    inventoryItemId: {
-      type: Schema.Types.ObjectId,
-      ref: 'InventoryItem',
-      required: [true, 'Item de estoque é obrigatório'],
-    },
-    quantity: {
-      type: Number,
-      required: [true, 'Quantidade é obrigatória'],
-      min: [0.01, 'Quantidade deve ser maior que zero'],
-    },
-    unitCost: {
-      type: Number,
-      required: [true, 'Custo unitário é obrigatório'],
-      min: [0, 'Custo não pode ser negativo'],
-    },
+    inventoryItemId: { type: Schema.Types.ObjectId, ref: 'InventoryItem', required: true },
+    quantity: { type: Number, required: true, min: 0.0001 },
+    unitCost: { type: Number, required: true, min: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
-// Schema do ServiceOrder
-const ServiceOrderSchema = new Schema<IServiceOrder>(
+const serviceOrderSchema = new Schema<IServiceOrder>(
   {
-    clientId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Client',
-      required: [true, 'Cliente é obrigatório'],
-    },
-    machineId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Machine',
-      required: [true, 'Máquina é obrigatória'],
-    },
+    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true, index: true },
+    machineId: { type: Schema.Types.ObjectId, ref: 'Machine', required: true, index: true },
     status: {
       type: String,
+      required: true,
       enum: ['ORCAMENTO', 'APROVADO', 'EM_EXECUCAO', 'CONCLUIDO'],
       default: 'ORCAMENTO',
-      required: true,
     },
     services: {
-      type: [ServiceItemSchema],
-      required: [true, 'Serviços são obrigatórios'],
-      validate: {
-        validator: (v: IServiceItem[]) => v.length > 0,
-        message: 'Deve haver pelo menos um serviço',
-      },
+      type: [serviceOrderServiceItemSchema],
+      required: true,
+      validate: [arrayHasItems, 'A ordem de servico deve possuir ao menos um servico'],
     },
-    materials: {
-      type: [MaterialUsageSchema],
-      default: [],
-    },
-    laborCost: {
-      type: Number,
-      default: 0,
-      min: [0, 'Custo de mão de obra não pode ser negativo'],
-    },
-    partsCost: {
-      type: Number,
-      default: 0,
-      min: [0, 'Custo de peças não pode ser negativo'],
-    },
-    totalCost: {
-      type: Number,
-      default: 0,
-      min: [0, 'Custo total não pode ser negativo'],
-    },
-    notes: {
+    materials: { type: [serviceOrderMaterialUsageSchema], default: [] },
+    laborCost: { type: Number, default: 0, min: 0 },
+    partsCost: { type: Number, default: 0, min: 0 },
+    totalCost: { type: Number, default: 0, min: 0 },
+    notes: { type: String, trim: true },
+    approvedAt: { type: Date },
+    startedAt: { type: Date },
+    finishedAt: { type: Date },
+    stockAdjustmentStatus: {
       type: String,
-      trim: true,
-    },
-    approvedAt: {
-      type: Date,
-    },
-    startedAt: {
-      type: Date,
-    },
-    finishedAt: {
-      type: Date,
+      enum: ['PENDING', 'APPLIED', 'FAILED'],
+      default: 'PENDING',
     },
   },
   {
     timestamps: true,
-  }
+    versionKey: false,
+  },
 );
 
-// Índices
-ServiceOrderSchema.index({ clientId: 1, createdAt: -1 });
-ServiceOrderSchema.index({ status: 1 });
-ServiceOrderSchema.index({ machineId: 1 });
+serviceOrderSchema.index({ clientId: 1, createdAt: -1 });
+serviceOrderSchema.index({ machineId: 1, createdAt: -1 });
 
-// Middleware para validar transições de status
-ServiceOrderSchema.pre('save', function (next) {
-  // Valida fluxo de status
-  const validTransitions: Record<string, string[]> = {
-    ORCAMENTO: ['APROVADO'],
-    APROVADO: ['EM_EXECUCAO'],
-    EM_EXECUCAO: ['CONCLUIDO'],
-    CONCLUIDO: [],
-  };
+function arrayHasItems(value: unknown[]): boolean {
+  return Array.isArray(value) && value.length > 0;
+}
 
-  if (this.isModified('status')) {
-    const original = this.get('status', null, { getters: false });
-    
-    // Se está mudando para CONCLUIDO, valida custos
-    if (this.status === 'CONCLUIDO') {
-      if (this.laborCost < 0 || this.partsCost < 0 || this.totalCost < 0) {
-        return next(new Error('Custos não podem ser negativos'));
-      }
-    }
-  }
-
-  next();
-});
-
-// Model
-export const ServiceOrder = mongoose.model<IServiceOrder>(
+// Exports expected by repositories
+export const ServiceOrder = model<IServiceOrder>(
   'ServiceOrder',
-  ServiceOrderSchema
+  serviceOrderSchema,
 );
+
+// Backward compatibility aliases
+export type ServiceOrderDocument = IServiceOrder;
+export const ServiceOrderModel = ServiceOrder;

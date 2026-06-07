@@ -1,46 +1,28 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
-// Interface para o documento Client
-export interface IClient extends Document {
-  userId: mongoose.Types.ObjectId;
+export interface ClientDocument extends Document {
+  userId?: Types.ObjectId;
   document?: string;
   address?: string;
   notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-// Schema do Client
-const ClientSchema = new Schema<IClient>(
+const clientSchema = new Schema<ClientDocument>(
   {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Usuário é obrigatório'],
-      unique: true,
-    },
-    document: {
-      type: String,
-      trim: true,
-      sparse: true, // Permite múltiplos valores null mas único se preenchido
-    },
-    address: {
-      type: String,
-      trim: true,
-    },
-    notes: {
-      type: String,
-      trim: true,
-    },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', unique: true, sparse: true },
+    document: { type: String, trim: true, unique: true, sparse: true },
+    address: { type: String, trim: true },
+    notes: { type: String, trim: true },
   },
   {
     timestamps: true,
-  }
+    versionKey: false,
+  },
 );
 
-// Índices
-ClientSchema.index({ userId: 1 });
-ClientSchema.index({ document: 1 }, { sparse: true });
+clientSchema.index({ document: 1 }, { unique: true, sparse: true });
 
-// Model
-export const Client = mongoose.model<IClient>('Client', ClientSchema);
+export const ClientModel = model<ClientDocument>('Client', clientSchema);
+
+export type IClient = ClientDocument;
+export const Client = ClientModel;

@@ -1,67 +1,42 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { MachineStatus } from '../../types';
 
-// Interface para o documento Machine
-export interface IMachine extends Document {
-  clientId?: mongoose.Types.ObjectId;
+export interface IMachine {
   name: string;
   brand?: string;
   model?: string;
   serialNumber?: string;
   location?: string;
-  status?: string;
+  status: MachineStatus;
   active: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-// Schema do Machine
-const MachineSchema = new Schema<IMachine>(
+const machineSchema = new Schema<IMachine>(
   {
-    clientId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Client',
-    },
-    name: {
-      type: String,
-      required: [true, 'Nome é obrigatório'],
-      trim: true,
-    },
-    brand: {
-      type: String,
-      trim: true,
-    },
-    model: {
-      type: String,
-      trim: true,
-    },
-    serialNumber: {
-      type: String,
-      trim: true,
-      sparse: true,
-    },
-    location: {
-      type: String,
-      trim: true,
-    },
+    name: { type: String, required: true, trim: true },
+    brand: { type: String, trim: true },
+    model: { type: String, trim: true },
+    serialNumber: { type: String, trim: true, unique: true, sparse: true },
+    location: { type: String, trim: true },
     status: {
       type: String,
-      trim: true,
-      default: 'OPERACIONAL',
+      required: true,
+      enum: ['ATIVO', 'INATIVO', 'EM_MANUTENCAO'],
+      default: 'ATIVO',
     },
-    active: {
-      type: Boolean,
-      default: true,
-    },
+    active: { type: Boolean, default: true },
   },
   {
     timestamps: true,
-  }
+    versionKey: false,
+  },
 );
 
-// Índices
-MachineSchema.index({ clientId: 1 });
-MachineSchema.index({ serialNumber: 1 }, { sparse: true });
-MachineSchema.index({ active: 1 });
+machineSchema.index({ serialNumber: 1 }, { unique: true, sparse: true });
 
-// Model
-export const Machine = mongoose.model<IMachine>('Machine', MachineSchema);
+
+export const Machine = model<IMachine>('Machine', machineSchema);
+
+
+export type MachineDocument = IMachine;
+export const MachineModel = Machine;

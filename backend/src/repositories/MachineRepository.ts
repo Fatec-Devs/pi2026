@@ -1,4 +1,4 @@
-import { Machine, IMachine } from '../database/models/Machine.model';
+import { Machine, IMachine } from '../database/models/machine.model';
 import mongoose from 'mongoose';
 
 export class MachineRepository {
@@ -21,7 +21,7 @@ export class MachineRepository {
    * Lista todas as máquinas
    */
   async findAll(): Promise<IMachine[]> {
-    return await Machine.find().populate('clientId');
+    return await Machine.find()
   }
 
   /**
