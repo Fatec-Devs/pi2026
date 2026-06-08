@@ -21,7 +21,7 @@ export class MachineRepository {
    * Lista todas as máquinas
    */
   async findAll(): Promise<IMachine[]> {
-    return await Machine.find()
+    return await Machine.find().populate('clientId');
   }
 
   /**
@@ -37,14 +37,14 @@ export class MachineRepository {
   async findByClientId(clientId: string): Promise<IMachine[]> {
     return await Machine.find({
       clientId: new mongoose.Types.ObjectId(clientId),
-    });
+    }).populate('clientId');
   }
 
   /**
    * Busca máquina por número de série
    */
   async findBySerialNumber(serialNumber: string): Promise<IMachine | null> {
-    return await Machine.findOne({ serialNumber });
+    return await Machine.findOne({ serialNumber }).populate('clientId');
   }
 
   /**

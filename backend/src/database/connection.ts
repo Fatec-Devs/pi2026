@@ -16,4 +16,7 @@ export async function connectDatabase(): Promise<void> {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
   });
+
+  // Desabilita strict populate para evitar erros ao popular campos
+  mongoose.set('strictPopulate', false);
 }

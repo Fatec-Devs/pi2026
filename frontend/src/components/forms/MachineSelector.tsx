@@ -23,9 +23,7 @@ export function MachineSelector({ value, onChange, error }: MachineSelectorProps
   useEffect(() => {
     // Atualiza máquina selecionada quando value muda
     if (value && machines.length > 0) {
-      const machine = machines.find(
-      (m) => (m as any)._id === value
-      );
+      const machine = machines.find((m) => m._id === value);
       if (machine) {
         setSelectedMachine(machine);
       }
@@ -46,10 +44,8 @@ export function MachineSelector({ value, onChange, error }: MachineSelectorProps
   };
 
  const handleSelect = (machine: Machine) => {
-  const machineId = (machine as any)._id;
-
   setSelectedMachine(machine);
-  onChange(machineId, machine);
+  onChange(machine._id, machine);
   setIsModalVisible(false);
 };
 
@@ -111,7 +107,7 @@ export function MachineSelector({ value, onChange, error }: MachineSelectorProps
 
             <FlatList
               data={machines}
-              keyExtractor={(item) => String((item as any)._id)}
+              keyExtractor={(item) => item._id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => handleSelect(item)}

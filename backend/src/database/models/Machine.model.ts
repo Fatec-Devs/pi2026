@@ -1,7 +1,8 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 import { MachineStatus } from '../../types';
 
 export interface IMachine {
+  clientId?: Types.ObjectId;
   name: string;
   brand?: string;
   model?: string;
@@ -13,6 +14,7 @@ export interface IMachine {
 
 const machineSchema = new Schema<IMachine>(
   {
+    clientId: { type: Schema.Types.ObjectId, ref: 'Client' },
     name: { type: String, required: true, trim: true },
     brand: { type: String, trim: true },
     model: { type: String, trim: true },

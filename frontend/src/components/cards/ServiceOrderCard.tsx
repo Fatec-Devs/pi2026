@@ -45,7 +45,7 @@ export function ServiceOrderCard({
         <View className="flex-row justify-between items-start mb-3">
           <View className="flex-1">
             <Text className="text-gray-500 text-xs mb-1">
-              OS #{serviceOrder.id?.slice(-8) || 'N/A'}
+              OS #{serviceOrder._id?.slice(-8) || 'N/A'}
             </Text>
             <Text className="text-gray-900 font-semibold text-base">
               {machineName}

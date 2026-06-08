@@ -13,19 +13,23 @@ import { Button } from '../../components/common/Button';
 import { TextInput } from '../../components/common/TextInput';
 import { ServiceItemInput } from '../../components/forms/ServiceItemInput';
 import { MachineSelector } from '../../components/forms/MachineSelector';
+import { ClientSelector } from '../../components/forms/ClientSelector';
 import { serviceOrderService } from '../../services/serviceOrder.service';
-import { ServiceItemInput as ServiceItemType, Machine } from '../../types/domain';
+import { clientService } from '../../services/client.service';
+import { ServiceItemInput as ServiceItemType, Machine, Client } from '../../types/domain';
 
 export function RequestServiceScreen() {
   const { user } = useAuth();
   const [clientId, setClientId] = useState('');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [machineId, setMachineId] = useState('');
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
   const [services, setServices] = useState<ServiceItemType[]>([
     { description: '', estimatedHours: 0, price: 0 },
   ]);
   const [notes, setNotes] = useState('');
-  const [errors, setErrors] = useState<{ machine?: string; services?: string }>({});
+  const [errors, setErrors] = useState<{ client?: string; machine?: string; services?: string }>({});
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingClient, setIsLoadingClient] = useState(true);
 
@@ -37,19 +41,28 @@ export function RequestServiceScreen() {
   const loadClientId = async () => {
     try {
       setIsLoadingClient(true);
-      // Aqui você precisaria fazer uma chamada à API para buscar o clientId
-      // Por enquanto, vamos usar um placeholder
-      // TODO: Implementar endpoint GET /clients/by-user/:userId
       
-      // Simulação temporária - em produção, fazer chamada real
-      // const response = await clientService.getByUserId(user!.id);
-      // setClientId(response.id);
-      
-      // Por enquanto, vamos assumir que o clientId é o mesmo que userId
-      // (isso deve ser ajustado conforme sua estrutura de dados)
-      setClientId(user!.id);
+      // Se for cliente, busca o próprio cliente
+      if (user?.role === 'CLIENT') {
+        const client = await clientService.getMe();
+        if (!client) {
+          // Cliente não encontrado - mostra mensagem amigável
+          setError('Você não possui um cadastro de cliente. Por favor, entre em contato com o suporte.');
+          return;
+        }
+        setClientId(client._id);
+        setSelectedClient(client);
+      } else {
+        // Se for admin, não carrega cliente automaticamente
+        // Admin deve selecionar o cliente manualmente
+        return;
+      }
     } catch (error: any) {
-      Alert.alert('Erro', error.message || 'Erro ao carregar dados do cliente');
+      if (error.code === 'CLIENT_NOT_FOUND' || error.status === 404) {
+        setError('Você não possui um cadastro de cliente. Por favor, entre em contato com o suporte.');
+      } else {
+        Alert.alert('Erro', error.message || 'Erro ao carregar dados do cliente');
+      }
     } finally {
       setIsLoadingClient(false);
     }
@@ -84,8 +97,22 @@ export function RequestServiceScreen() {
   }
 };
 
+  const handleClientChange = (id: string, client: Client | null) => {
+    setClientId(id);
+    setSelectedClient(client);
+
+    if (errors.client) {
+      setErrors((prev) => ({ ...prev, client: undefined }));
+    }
+  };
+
   const validate = () => {
     const newErrors: typeof errors = {};
+
+    // Admins precisam selecionar um cliente
+    if (user?.role === 'ADMIN' && !clientId) {
+      newErrors.client = 'Selecione um cliente';
+    }
 
     if (!machineId) {
       newErrors.machine = 'Selecione uma máquina';
@@ -153,10 +180,24 @@ export function RequestServiceScreen() {
     }
   };
 
-  if (isLoadingClient) {
+  if (isLoadingClient && user?.role === 'CLIENT') {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <Text className="text-gray-600">Carregando...</Text>
+      </View>
+    );
+  }
+
+  if (error && user?.role === 'CLIENT') {
+    return (
+      <View className="flex-1 items-center justify-center bg-white p-6">
+        <Text className="text-2xl mb-4">⚠️</Text>
+        <Text className="text-red-600 text-center font-semibold mb-2">
+          Cadastro Incompleto
+        </Text>
+        <Text className="text-gray-600 text-center">
+          {error}
+        </Text>
       </View>
     );
   }
@@ -174,6 +215,15 @@ export function RequestServiceScreen() {
           <Text className="text-gray-600 mb-6">
             Preencha os dados do serviço que deseja solicitar
           </Text>
+
+          {/* Seleção de Cliente (apenas para admins) */}
+          {user?.role === 'ADMIN' && (
+            <ClientSelector
+              value={clientId}
+              onChange={handleClientChange}
+              error={errors.client}
+            />
+          )}
 
           {/* Seleção de Máquina */}
           <MachineSelector

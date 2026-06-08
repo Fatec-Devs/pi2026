@@ -10,6 +10,7 @@ import { ServiceOrderCard } from '../../components/cards/ServiceOrderCard';
 import { Loading } from '../../components/common/Loading';
 import { EmptyState } from '../../components/common/EmptyState';
 import { serviceOrderService } from '../../services/serviceOrder.service';
+import { clientService } from '../../services/client.service';
 import { ServiceOrder } from '../../types/domain';
 
 export function MyServiceOrdersScreen() {
@@ -18,37 +19,34 @@ export function MyServiceOrdersScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [clientId, setClientId] = useState('');
 
-  // Busca clientId do usuário logado
+  // Carrega ordens ao montar
   useEffect(() => {
-    loadClientId();
+    loadServiceOrders();
   }, [user]);
-
-  // Carrega ordens ao montar ou quando clientId muda
-  useEffect(() => {
-    if (clientId) {
-      loadServiceOrders();
-    }
-  }, [clientId]);
-
-  const loadClientId = async () => {
-    try {
-      // TODO: Implementar endpoint GET /clients/by-user/:userId
-      // Por enquanto, assumir que clientId é o mesmo que userId
-      setClientId(user!.id);
-    } catch (error: any) {
-      setError(error.message || 'Erro ao carregar dados do cliente');
-    }
-  };
 
   const loadServiceOrders = async () => {
     try {
       setError('');
-      const data = await serviceOrderService.getClientHistory(clientId);
-      setServiceOrders(data);
+      
+      // Admins veem todas as ordens, clientes veem apenas as suas
+      if (user?.role === 'ADMIN') {
+        const serviceOrders = await serviceOrderService.list();
+        setServiceOrders(serviceOrders || []);
+      } else {
+        // Clientes precisam buscar seu clientId primeiro
+        const client = await clientService.getMe();
+        if (!client) {
+          setError('Você não possui um cadastro de cliente. Por favor, entre em contato com o suporte.');
+          setServiceOrders([]);
+          return;
+        }
+        const data = await serviceOrderService.getClientHistory(client._id);
+        setServiceOrders(data || []);
+      }
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar ordens de serviço');
+      setServiceOrders([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -58,11 +56,11 @@ export function MyServiceOrdersScreen() {
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
     loadServiceOrders();
-  }, [clientId]);
+  }, [user]);
 
   const handleCardPress = (serviceOrder: ServiceOrder) => {
     // TODO: Navegar para tela de detalhes da OS
-    console.log('Navegar para detalhes da OS:', serviceOrder.id);
+    console.log('Navegar para detalhes da OS:', serviceOrder._id);
   };
 
   // Estado de carregamento inicial
@@ -91,7 +89,7 @@ export function MyServiceOrdersScreen() {
       {/* Cabeçalho */}
       <View className="bg-white p-4 border-b border-gray-200">
         <Text className="text-2xl font-bold text-gray-900">
-          Minhas Ordens de Serviço
+          {user?.role === 'ADMIN' ? 'Todas as Ordens de Serviço' : 'Minhas Ordens de Serviço'}
         </Text>
         <Text className="text-gray-600 mt-1">
           {serviceOrders.length} {serviceOrders.length === 1 ? 'ordem' : 'ordens'} de serviço
@@ -108,7 +106,7 @@ export function MyServiceOrdersScreen() {
       {/* Lista de ordens */}
       <FlatList
         data={serviceOrders}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <ServiceOrderCard
             serviceOrder={item}
