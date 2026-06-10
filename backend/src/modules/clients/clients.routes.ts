@@ -1,44 +1,44 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import { authMiddleware, requireRole } from '../../middlewares/auth.middleware';
-import * as ClientsService from './clients.service';
+import { ClientController } from '../../controllers/ClientController';
 
 const router = Router();
+const clientController = new ClientController();
 
 router.use(authMiddleware);
 
-router.get('/', requireRole('ADMIN'), async (_req: Request, res: Response, next) => {
-  try {
-    const clients = await ClientsService.findAll();
-    res.json(clients);
-  } catch (err) { next(err); }
-});
+/**
+ * GET /clients/me
+ * Retorna o cliente do usuário autenticado
+ */
+router.get('/me', clientController.getMe);
 
-router.get('/:id', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
-  try {
-    const client = await ClientsService.findById(req.params.id);
-    res.json(client);
-  } catch (err) { next(err); }
-});
+/**
+ * GET /clients
+ * Lista todos os clientes (só ADMIN)
+ */
+router.get('/', requireRole('ADMIN'), clientController.list);
 
-router.post('/', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
-  try {
-    const client = await ClientsService.create(req.body);
-    res.status(201).json(client);
-  } catch (err) { next(err); }
-});
+/**
+ * GET /clients/:id
+ */
+router.get('/:id', requireRole('ADMIN'), clientController.getById);
 
-router.put('/:id', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
-  try {
-    const client = await ClientsService.update(req.params.id, req.body);
-    res.json(client);
-  } catch (err) { next(err); }
-});
+/**
+ * POST /clients
+ * Body: { userId, document, address, notes }
+ */
+router.post('/', requireRole('ADMIN'), clientController.create);
 
-router.delete('/:id', requireRole('ADMIN'), async (req: Request, res: Response, next) => {
-  try {
-    await ClientsService.remove(req.params.id);
-    res.status(204).send();
-  } catch (err) { next(err); }
-});
+/**
+ * PUT /clients/:id
+ * Body: campos a atualizar
+ */
+router.put('/:id', requireRole('ADMIN'), clientController.update);
+
+/**
+ * DELETE /clients/:id
+ */
+router.delete('/:id', requireRole('ADMIN'), clientController.delete);
 
 export default router;

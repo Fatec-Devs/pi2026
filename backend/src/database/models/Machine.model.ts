@@ -1,7 +1,8 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 import { MachineStatus } from '../../types';
 
-export interface MachineDocument {
+export interface IMachine {
+  clientId?: Types.ObjectId;
   name: string;
   brand?: string;
   model?: string;
@@ -11,8 +12,9 @@ export interface MachineDocument {
   active: boolean;
 }
 
-const machineSchema = new Schema<MachineDocument>(
+const machineSchema = new Schema<IMachine>(
   {
+    clientId: { type: Schema.Types.ObjectId, ref: 'Client' },
     name: { type: String, required: true, trim: true },
     brand: { type: String, trim: true },
     model: { type: String, trim: true },
@@ -34,4 +36,9 @@ const machineSchema = new Schema<MachineDocument>(
 
 machineSchema.index({ serialNumber: 1 }, { unique: true, sparse: true });
 
-export const MachineModel = model<MachineDocument>('Machine', machineSchema);
+
+export const Machine = model<IMachine>('Machine', machineSchema);
+
+
+export type MachineDocument = IMachine;
+export const MachineModel = Machine;

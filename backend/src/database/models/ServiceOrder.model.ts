@@ -13,7 +13,7 @@ export interface ServiceOrderMaterialUsage {
   unitCost: number;
 }
 
-export interface ServiceOrderDocument extends Document {
+export interface IServiceOrder extends Document {
   clientId: Types.ObjectId;
   machineId: Types.ObjectId;
   status: ServiceOrderStatus;
@@ -47,7 +47,7 @@ const serviceOrderMaterialUsageSchema = new Schema<ServiceOrderMaterialUsage>(
   { _id: false },
 );
 
-const serviceOrderSchema = new Schema<ServiceOrderDocument>(
+const serviceOrderSchema = new Schema<IServiceOrder>(
   {
     clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true, index: true },
     machineId: { type: Schema.Types.ObjectId, ref: 'Machine', required: true, index: true },
@@ -57,7 +57,11 @@ const serviceOrderSchema = new Schema<ServiceOrderDocument>(
       enum: ['ORCAMENTO', 'APROVADO', 'EM_EXECUCAO', 'CONCLUIDO'],
       default: 'ORCAMENTO',
     },
-    services: { type: [serviceOrderServiceItemSchema], required: true, validate: [arrayHasItems, 'A ordem de servico deve possuir ao menos um servico'] },
+    services: {
+      type: [serviceOrderServiceItemSchema],
+      required: true,
+      validate: [arrayHasItems, 'A ordem de servico deve possuir ao menos um servico'],
+    },
     materials: { type: [serviceOrderMaterialUsageSchema], default: [] },
     laborCost: { type: Number, default: 0, min: 0 },
     partsCost: { type: Number, default: 0, min: 0 },
@@ -85,4 +89,12 @@ function arrayHasItems(value: unknown[]): boolean {
   return Array.isArray(value) && value.length > 0;
 }
 
-export const ServiceOrderModel = model<ServiceOrderDocument>('ServiceOrder', serviceOrderSchema);
+// Exports expected by repositories
+export const ServiceOrder = model<IServiceOrder>(
+  'ServiceOrder',
+  serviceOrderSchema,
+);
+
+// Backward compatibility aliases
+export type ServiceOrderDocument = IServiceOrder;
+export const ServiceOrderModel = ServiceOrder;

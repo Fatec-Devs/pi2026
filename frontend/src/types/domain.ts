@@ -3,7 +3,7 @@ export type ServiceOrderStatus = 'ORCAMENTO' | 'APROVADO' | 'EM_EXECUCAO' | 'CON
 export type FinancialEntryType = 'INCOME' | 'EXPENSE';
 
 export interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   passwordHash: string;
@@ -15,7 +15,7 @@ export interface User {
 }
 
 export interface Client {
-  id: string;
+  _id: string;
   userId: string;
   document?: string;
   address?: string;
@@ -25,14 +25,14 @@ export interface Client {
 }
 
 export interface Machine {
-  id: string;
+  _id: string;
   clientId?: string;
   name: string;
   brand?: string;
   model?: string;
   serialNumber?: string;
   location?: string;
-  status?: string;
+  status: string;
   active: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -58,7 +58,7 @@ export interface CreateServiceOrderDTO {
 }
 
 export interface ServiceOrder {
-  id: string;
+  _id: string;
   clientId: string;
   machineId: string;
   status: ServiceOrderStatus;
@@ -76,7 +76,7 @@ export interface ServiceOrder {
 }
 
 export interface InventoryItem {
-  id: string;
+  _id: string;
   name: string;
   sku: string;
   unit: string;
@@ -89,7 +89,7 @@ export interface InventoryItem {
 }
 
 export interface FinancialEntry {
-  id: string;
+  _id: string;
   serviceOrderId?: string;
   type: FinancialEntryType;
   description: string;
