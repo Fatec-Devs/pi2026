@@ -23,3 +23,6 @@ const clientSchema = new Schema<ClientDocument>(
 clientSchema.index({ document: 1 }, { unique: true, sparse: true });
 
 export const ClientModel = model<ClientDocument>('Client', clientSchema);
+
+export type IClient = ClientDocument;
+export const Client = ClientModel;

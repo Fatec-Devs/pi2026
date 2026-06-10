@@ -4,6 +4,7 @@
 
 const appDb = db.getSiblingDB('pi-app-2026');
 const users = appDb.getCollection('users');
+const clients = appDb.getCollection('clients');
 
 const seedUsers = [
   {
@@ -32,4 +33,21 @@ for (const user of seedUsers) {
   );
 }
 
-print('Basic seed completed: 1 admin and 1 common user.');
+// Create client record for CLIENT user
+const clientUser = users.findOne({ email: 'user@pi-app-2026.com' });
+if (clientUser) {
+  clients.updateOne(
+    { userId: clientUser._id },
+    {
+      $setOnInsert: {
+        userId: clientUser._id,
+        document: '123.456.789-00',
+        address: 'Rua Exemplo, 123',
+        notes: 'Cliente de teste',
+      }
+    },
+    { upsert: true },
+  );
+}
+
+print('Basic seed completed: 1 admin, 1 common user, and 1 client record.');
