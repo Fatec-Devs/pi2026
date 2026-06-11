@@ -2,6 +2,35 @@ import { ClientRepository } from '../repositories/ClientRepository';
 import { AppError } from '../config/AppError';
 import { IClient } from '../database/models/client.model';
 
+function maskCpf(value?: string) {
+  if (!value) return value;
+
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (!digits) return undefined;
+
+  return digits
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function maskPhone(value?: string) {
+  if (!value) return value;
+
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (!digits) return undefined;
+
+  if (digits.length <= 10) {
+    return digits
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{4})(\d)/, '$1-$2');
+  }
+
+  return digits
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2');
+}
+
 export class ClientService {
   private clientRepository: ClientRepository;
 
@@ -98,8 +127,9 @@ export class ClientService {
 
     // Se documento fornecido, valida que não existe
     if (data.document) {
+      const normalizedDocument = maskCpf(data.document.trim());
       const existingClient = await this.clientRepository.findByDocument(
-        data.document
+        normalizedDocument || data.document
       );
 
       if (existingClient) {
@@ -111,7 +141,14 @@ export class ClientService {
       }
     }
 
-    return await this.clientRepository.create(data);
+    return await this.clientRepository.create({
+      ...data,
+      name: data.name?.trim(),
+      document: maskCpf(data.document?.trim()),
+      phone: maskPhone(data.phone?.trim()),
+      address: data.address?.trim(),
+      notes: data.notes?.trim(),
+    });
   }
 
   /**
@@ -136,8 +173,9 @@ export class ClientService {
 
     // Se mudando documento, valida que não existe
     if (data.document && data.document !== client.document) {
+      const normalizedDocument = maskCpf(data.document.trim());
       const existingClient = await this.clientRepository.findByDocument(
-        data.document
+        normalizedDocument || data.document
       );
 
       if (existingClient) {
@@ -149,7 +187,14 @@ export class ClientService {
       }
     }
 
-    return await this.clientRepository.update(id, data);
+    return await this.clientRepository.update(id, {
+      ...data,
+      name: data.name?.trim(),
+      document: data.document ? maskCpf(data.document.trim()) : data.document,
+      phone: data.phone ? maskPhone(data.phone.trim()) : data.phone,
+      address: data.address?.trim(),
+      notes: data.notes?.trim(),
+    });
   }
 
   /**

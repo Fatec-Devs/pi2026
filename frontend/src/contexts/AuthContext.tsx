@@ -3,7 +3,7 @@ import { authService } from '../services/auth.service';
 import { User } from '../types/domain';
 
 // Tipos para o contexto de autenticação
-interface AuthContextData {
+export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -13,7 +13,7 @@ interface AuthContextData {
 }
 
 // Criação do contexto
-const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 // Provider do contexto de autenticação
 interface AuthProviderProps {
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 }
 
 // Hook para usar o contexto de autenticação
-export function useAuth(): AuthContextData {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
 
   if (!context) {

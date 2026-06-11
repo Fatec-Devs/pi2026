@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3333/api';
+  (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3333/api').trim();
 const TOKEN_KEY = '@pi2026:token';
 
 // API Client class para gerenciar requisições

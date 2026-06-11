@@ -128,6 +128,11 @@ export default function MachinesListScreen() {
               Local: {item.location}
             </Text>
           )}
+          {item.notes && (
+            <Text style={styles.machineLocation} numberOfLines={2}>
+              Notas: {item.notes}
+            </Text>
+          )}
         </View>
 
         <View style={styles.statusRow}>

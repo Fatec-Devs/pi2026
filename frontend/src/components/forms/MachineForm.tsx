@@ -31,6 +31,7 @@ export const MachineForm: React.FC<MachineFormProps> = ({
     model: initialData.model || '',
     serialNumber: initialData.serialNumber || '',
     location: initialData.location || '',
+    notes: initialData.notes || '',
     status: initialData.status || 'ATIVO',
     active: initialData.active !== undefined ? initialData.active : true,
   });
@@ -148,6 +149,21 @@ export const MachineForm: React.FC<MachineFormProps> = ({
             editable={!isLoading}
             multiline
             numberOfLines={3}
+          />
+        </View>
+
+        {/* Notas */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Notas</Text>
+          <TextInput
+            style={[styles.input, styles.notesInput]}
+            placeholder="Descreva informações importantes sobre a máquina"
+            placeholderTextColor="#999"
+            value={formData.notes}
+            onChangeText={(value) => handleInputChange('notes', value)}
+            editable={!isLoading}
+            multiline
+            numberOfLines={4}
           />
         </View>
 

@@ -98,7 +98,7 @@ export default function LoginScreen() {
 
           <Text style={styles.credentialsText}>
             Dados de teste:{'\n'}
-            admin@example.com / senha123
+            admin@pi-app-2026.com / senha123
           </Text>
         </View>
       </KeyboardAvoidingView>

@@ -51,7 +51,15 @@ export class MachineService {
       }
     }
 
-    return await this.machineRepository.create(data);
+    return await this.machineRepository.create({
+      ...data,
+      name: data.name?.trim(),
+      brand: data.brand?.trim(),
+      model: data.model?.trim(),
+      serialNumber: data.serialNumber?.trim(),
+      location: data.location?.trim(),
+      notes: data.notes?.trim(),
+    });
   }
 
   /**
@@ -147,7 +155,15 @@ export class MachineService {
       }
     }
 
-    return await this.machineRepository.update(id, data);
+    return await this.machineRepository.update(id, {
+      ...data,
+      name: data.name?.trim(),
+      brand: data.brand?.trim(),
+      model: data.model?.trim(),
+      serialNumber: data.serialNumber?.trim(),
+      location: data.location?.trim(),
+      notes: data.notes?.trim(),
+    });
   }
 
   /**

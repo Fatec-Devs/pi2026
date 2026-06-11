@@ -27,6 +27,9 @@ class AuthService {
    * Realiza login do usuário
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
+    // Remove qualquer token antigo antes de iniciar uma nova autenticação.
+    await api.setToken(null);
+
     const response = await api.post<LoginResponse>('/auth/login', credentials);
     
     // Salva o token no cliente API

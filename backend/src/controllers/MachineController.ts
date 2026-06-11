@@ -41,7 +41,7 @@ export class MachineController {
    */
   create = async (req: Request, res: Response) => {
     const userRole = req.user?.role;
-    const { clientId, name, brand, model, serialNumber, location, status } =
+    const { clientId, name, brand, model, serialNumber, location, notes, status } =
       req.body;
 
     // Validação básica
@@ -60,6 +60,7 @@ export class MachineController {
         model,
         serialNumber,
         location,
+        notes,
         status,
       },
       userRole!
@@ -74,7 +75,7 @@ export class MachineController {
   update = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userRole = req.user?.role;
-    const { clientId, name, brand, model, serialNumber, location, status, active } =
+    const { clientId, name, brand, model, serialNumber, location, notes, status, active } =
       req.body;
 
     const machine = await this.machineService.update(
@@ -86,6 +87,7 @@ export class MachineController {
         model,
         serialNumber,
         location,
+        notes,
         status,
         active,
       },
