@@ -3,6 +3,7 @@ import { ClientRepository } from '../repositories/ClientRepository';
 import { MachineRepository } from '../repositories/MachineRepository';
 import { AppError } from '../config/AppError';
 import { IServiceOrder } from '../database/models/serviceOrder.model';
+import { FinancialEntryModel } from '../database/models/financialEntry.model';
 
 export class ServiceOrderService {
   private serviceOrderRepository: ServiceOrderRepository;
@@ -97,13 +98,17 @@ export class ServiceOrderService {
       }
     });
 
+    const servicesTotal = data.services.reduce((total, service) => {
+      return total + (service.price || 0);
+    }, 0);
+
     // Define valores padrão
     if (!data.status) {
       data.status = 'ORCAMENTO';
     }
 
     if (data.laborCost === undefined) {
-      data.laborCost = 0;
+      data.laborCost = servicesTotal;
     }
 
     if (data.partsCost === undefined) {
@@ -111,10 +116,14 @@ export class ServiceOrderService {
     }
 
     if (data.totalCost === undefined) {
-      data.totalCost = 0;
+      data.totalCost = data.laborCost + data.partsCost;
     }
 
-    return await this.serviceOrderRepository.create(data);
+    const createdServiceOrder = await this.serviceOrderRepository.create(data);
+
+    await this.syncFinanceEntry(createdServiceOrder);
+
+    return createdServiceOrder;
   }
 
   /**
@@ -253,7 +262,13 @@ export class ServiceOrderService {
       }
     }
 
-    return await this.serviceOrderRepository.updateStatus(id, status);
+    const updatedServiceOrder = await this.serviceOrderRepository.updateStatus(id, status);
+
+    if (updatedServiceOrder && status === 'APROVADO') {
+      await this.syncFinanceEntry(updatedServiceOrder);
+    }
+
+    return updatedServiceOrder;
   }
 
   /**
@@ -347,11 +362,40 @@ export class ServiceOrderService {
       );
     }
 
-    return await this.serviceOrderRepository.updateCosts(
+    const updatedServiceOrder = await this.serviceOrderRepository.updateCosts(
       id,
       laborCost,
       partsCost,
       totalCost
+    );
+
+    if (updatedServiceOrder && updatedServiceOrder.status !== 'ORCAMENTO') {
+      await this.syncFinanceEntry(updatedServiceOrder);
+    }
+
+    return updatedServiceOrder;
+  }
+
+  private async syncFinanceEntry(serviceOrder: IServiceOrder) {
+    const amount = Math.max(serviceOrder.totalCost || 0, 0);
+    const orderNumber = serviceOrder.sequence
+      ? String(serviceOrder.sequence).padStart(3, '0')
+      : serviceOrder._id.toString().slice(-6);
+
+    await FinancialEntryModel.findOneAndUpdate(
+      {
+        serviceOrderId: serviceOrder._id,
+        type: 'INCOME',
+      },
+      {
+        serviceOrderId: serviceOrder._id,
+        type: 'INCOME',
+        description: `OS ${orderNumber}`,
+        amount,
+        date: serviceOrder.updatedAt || new Date(),
+        category: 'ORDEM_SERVICO',
+      },
+      { upsert: true, new: true, runValidators: true }
     );
   }
 }

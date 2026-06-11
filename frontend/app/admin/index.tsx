@@ -20,6 +20,20 @@ export default function AdminIndex() {
       icon: '⚙️',
       route: '/admin/machines',
     },
+    {
+      id: 'service-orders',
+      title: 'Ordens de Serviço',
+      description: 'Acompanhar e mudar status das OS',
+      icon: '📋',
+      route: '/admin/service-orders',
+    },
+    {
+      id: 'finance',
+      title: 'Financeiro',
+      description: 'Consultar balanço e lançamentos',
+      icon: '💰',
+      route: '/admin/finance',
+    },
   ];
 
   return (
