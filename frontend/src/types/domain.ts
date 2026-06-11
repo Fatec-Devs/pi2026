@@ -62,8 +62,9 @@ export interface CreateServiceOrderDTO {
 
 export interface ServiceOrder {
   _id: string;
-  clientId: string;
-  machineId: string;
+  sequence?: number;
+  clientId: string | Client;
+  machineId: string | Machine;
   status: ServiceOrderStatus;
   services: ServiceItemInput[];
   materials: MaterialUsageInput[];
@@ -78,6 +79,7 @@ export interface ServiceOrder {
   updatedAt?: string;
 }
 
+
 export interface FinancialEntry {
   _id: string;
   serviceOrderId?: string;
@@ -88,6 +90,12 @@ export interface FinancialEntry {
   category?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface FinancialSummary {
+  income: number;
+  expense: number;
+  balance: number;
 }
 
 export interface AuthResponse {

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import { serviceOrderService } from '../../services/serviceOrder.service';
 
 type ServiceOrderStatus = 'ORCAMENTO' | 'APROVADO' | 'EM_EXECUCAO' | 'CONCLUIDO';
 
@@ -28,9 +29,11 @@ interface MaterialUsage {
 }
 
 interface ServiceOrder {
+  rawId: string;
   id: string;
   clientId: string;
   clientName: string;
+  clientCpf?: string;
   vehicleId: string;
   vehicleLabel: string;
   status: ServiceOrderStatus;
@@ -44,6 +47,7 @@ interface ServiceOrder {
   approvedAt: string;
   startedAt: string;
   finishedAt: string;
+  updatedAt: string;
 }
 
 interface StatusCfg {
@@ -74,72 +78,72 @@ const NEXT_LABEL: Partial<Record<ServiceOrderStatus, string>> = {
   EM_EXECUCAO: 'Concluir OS',
 };
 
-const MOCK: ServiceOrder[] = [
-  {
-    id: 'OS-2026-0012', clientId: 'c1', clientName: 'Carlos Mendes',
-    vehicleId: 'v1', vehicleLabel: 'HXV-4821 · Honda Civic 2021',
-    status: 'EM_EXECUCAO',
-    services: [
-      { description: 'Troca de pastilhas de freio', estimatedHours: 2, price: 280 },
-      { description: 'Alinhamento e balanceamento', estimatedHours: 1, price: 120 },
-    ],
-    materials: [
-      { inventoryItemId: 'i1', name: 'Pastilha dianteira', quantity: 2, unitCost: 65 },
-      { inventoryItemId: 'i2', name: 'Fluido de freio 500ml', quantity: 1, unitCost: 55 },
-    ],
-    laborCost: 400, partsCost: 185, totalCost: 585,
-    notes: 'Verificar freio traseiro.',
-    createdAt: '05/06/2026', approvedAt: '06/06/2026', startedAt: '07/06/2026', finishedAt: '',
-  },
-  {
-    id: 'OS-2026-0011', clientId: 'c2', clientName: 'Ana Beatriz',
-    vehicleId: 'v2', vehicleLabel: 'PQR-0031 · Toyota Corolla 2019',
-    status: 'APROVADO',
-    services: [{ description: 'Troca de óleo e filtro', estimatedHours: 1, price: 180 }],
-    materials: [],
-    laborCost: 80, partsCost: 120, totalCost: 200,
-    notes: '', createdAt: '04/06/2026', approvedAt: '05/06/2026', startedAt: '', finishedAt: '',
-  },
-  {
-    id: 'OS-2026-0010', clientId: 'c3', clientName: 'Roberto Silva',
-    vehicleId: 'v3', vehicleLabel: 'BCD-7744 · VW Gol 2018',
-    status: 'CONCLUIDO',
-    services: [{ description: 'Revisão completa 40.000 km', estimatedHours: 4, price: 750 }],
-    materials: [
-      { inventoryItemId: 'i3', name: 'Kit revisão', quantity: 1, unitCost: 220 },
-      { inventoryItemId: 'i4', name: 'Filtro de ar', quantity: 1, unitCost: 45 },
-      { inventoryItemId: 'i5', name: 'Vela de ignição', quantity: 4, unitCost: 41 },
-    ],
-    laborCost: 320, partsCost: 430, totalCost: 750,
-    notes: '', createdAt: '28/05/2026', approvedAt: '29/05/2026', startedAt: '30/05/2026', finishedAt: '01/06/2026',
-  },
-  {
-    id: 'OS-2026-0009', clientId: 'c4', clientName: 'Fernanda Costa',
-    vehicleId: 'v4', vehicleLabel: 'LMN-5512 · Fiat Argo 2022',
-    status: 'ORCAMENTO',
-    services: [
-      { description: 'Diagnóstico eletrônico', estimatedHours: 1.5, price: 150 },
-      { description: 'Reparo sistema elétrico', estimatedHours: 3, price: 480 },
-    ],
-    materials: [],
-    laborCost: 0, partsCost: 0, totalCost: 0,
-    notes: 'Falha intermitente no painel.',
-    createdAt: '09/06/2026', approvedAt: '', startedAt: '', finishedAt: '',
-  },
-];
-
 function brl(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function formatDateTime(dateString?: string): string {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleString('pt-BR');
+}
+
+function toUiOrder(order: any): ServiceOrder {
+  const client = order.clientId && typeof order.clientId === 'object' ? order.clientId : null;
+  const machine = order.machineId && typeof order.machineId === 'object' ? order.machineId : null;
+  const orderNumber = order.sequence ? `OS-${String(order.sequence).padStart(3, '0')}` : `OS-${String(order._id).slice(-8)}`;
+
+  return {
+    rawId: String(order._id),
+    id: orderNumber,
+    clientId: String(client?._id ?? order.clientId ?? ''),
+    clientName: client?.name || client?.document || 'Cliente não identificado',
+    clientCpf: client?.document || '',
+    vehicleId: String(machine?._id ?? order.machineId ?? ''),
+    vehicleLabel: machine?.name || 'Máquina não identificada',
+    status: order.status,
+    services: order.services || [],
+    materials: order.materials || [],
+    laborCost: order.laborCost || 0,
+    partsCost: order.partsCost || 0,
+    totalCost: order.totalCost || 0,
+    notes: order.notes || '',
+    createdAt: formatDateTime(order.createdAt),
+    approvedAt: formatDateTime(order.approvedAt),
+    startedAt: formatDateTime(order.startedAt),
+    finishedAt: formatDateTime(order.finishedAt),
+    updatedAt: formatDateTime(order.updatedAt),
+  };
+}
+
 export default function ServiceOrdersScreen() {
-  const [orders, setOrders] = useState<ServiceOrder[]>(MOCK);
+  const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [filterStatus, setFilterStatus] = useState<ServiceOrderStatus | 'all'>('all');
   const [search, setSearch] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string>('');
   const [detailVisible, setDetailVisible] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const selectedOrder = orders.find((o) => o.id === selectedId) ?? null;
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  async function loadOrders() {
+    try {
+      setError(null);
+      const response = await serviceOrderService.list();
+      setOrders(response.map((order: any) => toUiOrder(order)));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao carregar ordens de serviço';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }
 
   const openCount = orders.filter((o) => o.status !== 'CONCLUIDO').length;
   const monthRevenue = orders.filter((o) => o.status === 'CONCLUIDO').reduce((a, o) => a + o.totalCost, 0);
@@ -149,28 +153,24 @@ export default function ServiceOrdersScreen() {
     const q = search.toLowerCase();
     return orders.filter((o) => {
       const matchStatus = filterStatus === 'all' || o.status === filterStatus;
-      const matchSearch = q === '' || o.clientName.toLowerCase().includes(q) || o.vehicleLabel.toLowerCase().includes(q) || o.id.toLowerCase().includes(q);
+      const matchSearch = q === '' || o.clientName.toLowerCase().includes(q) || o.vehicleLabel.toLowerCase().includes(q) || o.id.toLowerCase().includes(q) || (o.clientCpf || '').toLowerCase().includes(q);
       return matchStatus && matchSearch;
     });
   }, [orders, filterStatus, search]);
 
-  function advanceStatus(id: string): void {
-    setOrders((prev) =>
-      prev.map((o) => {
-        if (o.id !== id) return o;
-        const next = NEXT_STATUS[o.status];
-        if (next === undefined) return o;
-        const t = new Date().toLocaleDateString('pt-BR');
-        return {
-          ...o,
-          status: next,
-          approvedAt:  next === 'APROVADO'    ? t : o.approvedAt,
-          startedAt:   next === 'EM_EXECUCAO' ? t : o.startedAt,
-          finishedAt:  next === 'CONCLUIDO'   ? t : o.finishedAt,
-          totalCost:   next === 'CONCLUIDO'   ? o.laborCost + o.partsCost : o.totalCost,
-        };
-      })
-    );
+  async function advanceStatus(id: string): Promise<void> {
+    const current = orders.find((x) => x.id === id);
+    if (current === undefined) return;
+
+    const next = NEXT_STATUS[current.status];
+    if (next === undefined) return;
+
+    const rawId = current.rawId;
+    if (!rawId) return;
+
+    const updated = await serviceOrderService.updateStatus(rawId, next);
+    const mapped = toUiOrder(updated as any);
+    setOrders((prev) => prev.map((o) => (o.id === id ? mapped : o)));
   }
 
   function handleAdvance(id: string): void {
@@ -183,7 +183,7 @@ export default function ServiceOrdersScreen() {
       `Confirmar: ${o.id} → ${STATUS_CONFIG[next].label}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Confirmar', onPress: () => advanceStatus(id) },
+        { text: 'Confirmar', onPress: async () => { await advanceStatus(id); } },
       ]
     );
   }
@@ -193,7 +193,7 @@ export default function ServiceOrdersScreen() {
       <View style={s.topbar}>
         <View>
           <Text style={s.topbarTitle}>Ordens de serviço</Text>
-          <Text style={s.topbarSub}>12 ordens este mês</Text>
+          <Text style={s.topbarSub}>{orders.length} ordens carregadas</Text>
         </View>
         <TouchableOpacity style={s.btnNew} onPress={() => Alert.alert('Nova OS', 'Abrir formulário.')} activeOpacity={0.7}>
           <Text style={s.btnNewText}>+ Nova OS</Text>
@@ -242,15 +242,29 @@ export default function ServiceOrdersScreen() {
 
       <Text style={s.sectionLabel}>Recentes</Text>
 
+      {error && (
+        <View style={s.errorWrap}>
+          <Text style={s.errorText}>{error}</Text>
+          <TouchableOpacity onPress={loadOrders}>
+            <Text style={s.errorAction}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <FlatList<ServiceOrder>
         data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={s.listContent}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<View style={s.emptyWrap}><Text style={s.emptyText}>Nenhuma ordem encontrada</Text></View>}
+        ListEmptyComponent={isLoading ? <View style={s.emptyWrap}><Text style={s.emptyText}>Carregando...</Text></View> : <View style={s.emptyWrap}><Text style={s.emptyText}>Nenhuma ordem encontrada</Text></View>}
         renderItem={({ item }) => (
           <OSCard order={item} onPress={() => { setSelectedId(item.id); setDetailVisible(true); }} />
         )}
+        onRefresh={() => {
+          setIsRefreshing(true);
+          loadOrders();
+        }}
+        refreshing={isRefreshing}
       />
 
       <Modal

@@ -38,6 +38,10 @@ export function ServiceOrderCard({
       ? (serviceOrder.machineId as any).name
       : 'Máquina não identificada';
 
+  const orderNumber = serviceOrder.sequence
+    ? String(serviceOrder.sequence).padStart(3, '0')
+    : serviceOrder._id?.slice(-8) || 'N/A';
+
   return (
     <TouchableOpacity onPress={onPress} disabled={!onPress}>
       <Card variant="outlined" className="mb-3">
@@ -45,7 +49,7 @@ export function ServiceOrderCard({
         <View className="flex-row justify-between items-start mb-3">
           <View className="flex-1">
             <Text className="text-gray-500 text-xs mb-1">
-              OS #{serviceOrder._id?.slice(-8) || 'N/A'}
+              OS #{orderNumber}
             </Text>
             <Text className="text-gray-900 font-semibold text-base">
               {machineName}
@@ -88,6 +92,12 @@ export function ServiceOrderCard({
           <Text className="text-gray-500 text-xs">
             Criado em {formatDate(serviceOrder.createdAt)}
           </Text>
+
+          {serviceOrder.updatedAt && serviceOrder.updatedAt !== serviceOrder.createdAt && (
+            <Text className="text-gray-500 text-xs">
+              Editado em {formatDate(serviceOrder.updatedAt)}
+            </Text>
+          )}
           
           {serviceOrder.status === 'CONCLUIDO' && serviceOrder.finishedAt && (
             <Text className="text-green-600 text-xs font-medium">

@@ -16,6 +16,7 @@ export interface ServiceOrderMaterialUsage {
 export interface IServiceOrder extends Document {
   clientId: Types.ObjectId;
   machineId: Types.ObjectId;
+  sequence?: number;
   status: ServiceOrderStatus;
   services: ServiceOrderServiceItem[];
   materials: ServiceOrderMaterialUsage[];
@@ -26,6 +27,8 @@ export interface IServiceOrder extends Document {
   approvedAt?: Date;
   startedAt?: Date;
   finishedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   stockAdjustmentStatus: 'PENDING' | 'APPLIED' | 'FAILED';
 }
 
@@ -51,6 +54,7 @@ const serviceOrderSchema = new Schema<IServiceOrder>(
   {
     clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true, index: true },
     machineId: { type: Schema.Types.ObjectId, ref: 'Machine', required: true, index: true },
+    sequence: { type: Number, unique: true, sparse: true },
     status: {
       type: String,
       required: true,
@@ -84,6 +88,7 @@ const serviceOrderSchema = new Schema<IServiceOrder>(
 
 serviceOrderSchema.index({ clientId: 1, createdAt: -1 });
 serviceOrderSchema.index({ machineId: 1, createdAt: -1 });
+serviceOrderSchema.index({ sequence: 1 }, { unique: true, sparse: true });
 
 function arrayHasItems(value: unknown[]): boolean {
   return Array.isArray(value) && value.length > 0;
