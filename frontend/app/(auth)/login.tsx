@@ -67,10 +67,7 @@ export default function LoginScreen() {
           {/* Logo/Título */}
           <View className="items-center mb-8">
             <Text className="text-4xl mb-2">🔧</Text>
-            <Text className="text-3xl font-bold text-gray-900 mb-2">
-              Pi App 2026
-            </Text>
-            <Text className="text-gray-600">
+            <Text className="text-3xl font-bold text-gray-900 mb-2 text-center">
               Sistema de Gestão de Oficina
             </Text>
           </View>
