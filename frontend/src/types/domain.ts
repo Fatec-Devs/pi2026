@@ -75,19 +75,6 @@ export interface ServiceOrder {
   updatedAt?: string;
 }
 
-export interface InventoryItem {
-  _id: string;
-  name: string;
-  sku: string;
-  unit: string;
-  quantity: number;
-  minStock: number;
-  unitCost: number;
-  active: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 export interface FinancialEntry {
   _id: string;
   serviceOrderId?: string;

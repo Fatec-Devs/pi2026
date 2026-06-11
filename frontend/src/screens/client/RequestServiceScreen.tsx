@@ -15,7 +15,7 @@ import { ServiceItemInput } from '../../components/forms/ServiceItemInput';
 import { MachineSelector } from '../../components/forms/MachineSelector';
 import { ClientSelector } from '../../components/forms/ClientSelector';
 import { serviceOrderService } from '../../services/serviceOrder.service';
-import { clientService } from '../../services/client.service';
+import clientService from '../../services/clientService';
 import { ServiceItemInput as ServiceItemType, Machine, Client } from '../../types/domain';
 
 export function RequestServiceScreen() {

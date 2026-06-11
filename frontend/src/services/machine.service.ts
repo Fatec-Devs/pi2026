@@ -22,18 +22,16 @@ export interface UpdateMachineRequest {
   active?: boolean;
 }
 
-export interface MachineListResponse {
-  machines: Machine[];
-  total: number;
-}
-
 // Serviço de Máquinas
 class MachineService {
   /**
    * Lista todas as máquinas
    */
   async list(): Promise<Machine[]> {
-    const response = await api.get<MachineListResponse>('/machines');
+    const response = await api.get<{ machines: Machine[]; total: number }>('/machines');
+    if (!response.machines || !Array.isArray(response.machines)) {
+      throw new Error('Resposta inválida do servidor ao listar máquinas');
+    }
     return response.machines;
   }
 
@@ -41,21 +39,33 @@ class MachineService {
    * Obtém uma máquina por ID
    */
   async getById(id: string): Promise<Machine> {
-    return await api.get<Machine>(`/machines/${id}`);
+    const response = await api.get<Machine>(`/machines/${id}`);
+    if (!response) {
+      throw new Error('Resposta inválida do servidor ao obter máquina');
+    }
+    return response;
   }
 
   /**
    * Cria uma nova máquina (admin)
    */
   async create(data: CreateMachineRequest): Promise<Machine> {
-    return await api.post<Machine>('/machines', data);
+    const response = await api.post<Machine>('/machines', data);
+    if (!response) {
+      throw new Error('Resposta inválida do servidor ao criar máquina');
+    }
+    return response;
   }
 
   /**
    * Atualiza uma máquina (admin)
    */
   async update(id: string, data: UpdateMachineRequest): Promise<Machine> {
-    return await api.put<Machine>(`/machines/${id}`, data);
+    const response = await api.put<Machine>(`/machines/${id}`, data);
+    if (!response) {
+      throw new Error('Resposta inválida do servidor ao atualizar máquina');
+    }
+    return response;
   }
 
   /**

@@ -10,7 +10,7 @@ import { ServiceOrderCard } from '../../components/cards/ServiceOrderCard';
 import { Loading } from '../../components/common/Loading';
 import { EmptyState } from '../../components/common/EmptyState';
 import { serviceOrderService } from '../../services/serviceOrder.service';
-import { clientService } from '../../services/client.service';
+import clientService from '../../services/clientService';
 import { ServiceOrder } from '../../types/domain';
 
 export function MyServiceOrdersScreen() {
