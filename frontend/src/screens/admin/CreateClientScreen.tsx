@@ -24,24 +24,24 @@ export default function CreateClientScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const handleCreateClient = async (formData: any) => {
-    if (!user) {
-      Alert.alert('Erro', 'Usuário não autenticado');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
     try {
-      const clientPayload = {
+      const clientPayload: any = {
         ...formData,
-        userId: user.id,
       };
+
+      // Adiciona userId apenas se o usuário for um cliente (não admin)
+      // Admins podem criar clientes sem vincular a um usuário específico
+      if (user && user.role === 'CLIENT') {
+        clientPayload.userId = user._id;
+      }
 
       const newClient = await clientService.create(clientPayload);
 
       // Sucesso
-      Alert.alert('Sucesso', `Cliente ${newClient.id} cadastrado com sucesso!`, [
+      Alert.alert('Sucesso', `Cliente cadastrado com sucesso!`, [
         {
           text: 'OK',
           onPress: () => {

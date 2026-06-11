@@ -52,6 +52,17 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Admin Dashboard Button - Only visible to admins */}
+        {user?.role === 'ADMIN' && (
+          <Button
+            title="Painel Admin"
+            onPress={() => router.push('/admin')}
+            variant="primary"
+            size="large"
+            className="mb-4"
+          />
+        )}
+
         {/* Ações */}
         <Button
           title="Sair da Conta"

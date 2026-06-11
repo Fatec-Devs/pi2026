@@ -1,3 +1,3 @@
-import ClientDetailScreen from '@/src/screens/admin/ClientDetailScreen';
+import ClientDetailScreen from '../../../src/screens/admin/ClientDetailScreen';
 
 export default ClientDetailScreen;

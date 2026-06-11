@@ -18,9 +18,9 @@ export default function AdminLayout() {
         }}
       />
       <Stack.Screen
-        name="products"
+        name="machines"
         options={{
-          title: 'Produtos',
+          title: 'Máquinas',
           headerShown: false,
         }}
       />

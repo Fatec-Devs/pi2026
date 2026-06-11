@@ -29,6 +29,9 @@ class ServiceOrderService {
       '/service-orders',
       data
     );
+    if (!response.serviceOrder) {
+      throw new Error('Resposta inválida do servidor ao criar ordem de serviço');
+    }
     return response.serviceOrder;
   }
 
@@ -37,6 +40,9 @@ class ServiceOrderService {
    */
   async list(): Promise<ServiceOrder[]> {
     const response = await api.get<ServiceOrderListResponse>('/service-orders');
+    if (!response.serviceOrders || !Array.isArray(response.serviceOrders)) {
+      throw new Error('Resposta inválida do servidor ao listar ordens de serviço');
+    }
     return response.serviceOrders;
   }
 
@@ -44,7 +50,11 @@ class ServiceOrderService {
    * Obtém uma ordem de serviço por ID
    */
   async getById(id: string): Promise<ServiceOrder> {
-    return await api.get<ServiceOrder>(`/service-orders/${id}`);
+    const response = await api.get<ServiceOrder>(`/service-orders/${id}`);
+    if (!response) {
+      throw new Error('Resposta inválida do servidor ao obter ordem de serviço');
+    }
+    return response;
   }
 
   /**
@@ -54,6 +64,9 @@ class ServiceOrderService {
     const response = await api.get<ServiceOrderListResponse>(
       `/service-orders/client/${clientId}/history`
     );
+    if (!response.serviceOrders || !Array.isArray(response.serviceOrders)) {
+      throw new Error('Resposta inválida do servidor ao listar histórico de ordens de serviço');
+    }
     return response.serviceOrders;
   }
 
@@ -64,9 +77,13 @@ class ServiceOrderService {
     id: string,
     status: 'ORCAMENTO' | 'APROVADO' | 'EM_EXECUCAO' | 'CONCLUIDO'
   ): Promise<ServiceOrder> {
-    return await api.patch<ServiceOrder>(`/service-orders/${id}/status`, {
+    const response = await api.patch<ServiceOrder>(`/service-orders/${id}/status`, {
       status,
     });
+    if (!response) {
+      throw new Error('Resposta inválida do servidor ao atualizar status da ordem de serviço');
+    }
+    return response;
   }
 
   /**
@@ -80,9 +97,13 @@ class ServiceOrderService {
       unitCost: number;
     }>
   ): Promise<ServiceOrder> {
-    return await api.patch<ServiceOrder>(`/service-orders/${id}/materials`, {
+    const response = await api.patch<ServiceOrder>(`/service-orders/${id}/materials`, {
       materials,
     });
+    if (!response) {
+      throw new Error('Resposta inválida do servidor ao adicionar materiais à ordem de serviço');
+    }
+    return response;
   }
 
   /**
@@ -96,7 +117,11 @@ class ServiceOrderService {
       totalCost: number;
     }
   ): Promise<ServiceOrder> {
-    return await api.patch<ServiceOrder>(`/service-orders/${id}/costs`, costs);
+    const response = await api.patch<ServiceOrder>(`/service-orders/${id}/costs`, costs);
+    if (!response) {
+      throw new Error('Resposta inválida do servidor ao atualizar custos da ordem de serviço');
+    }
+    return response;
   }
 }
 

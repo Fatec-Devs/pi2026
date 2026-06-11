@@ -67,7 +67,7 @@ export default function ClientsListScreen() {
             try {
               await clientService.delete(clientId);
               Alert.alert('Sucesso', 'Cliente excluído com sucesso');
-              setClients((prev) => prev.filter((c) => c.id !== clientId));
+              setClients((prev) => prev.filter((c) => c._id !== clientId));
             } catch (err) {
               const errorMessage =
                 err instanceof Error ? err.message : 'Erro ao excluir cliente';
@@ -83,12 +83,12 @@ export default function ClientsListScreen() {
   const renderClientItem = ({ item }: { item: Client }) => (
     <TouchableOpacity
       style={styles.clientCard}
-      onPress={() => router.push(`/admin/clients/${item.id}`)}
+      onPress={() => router.push(`/admin/clients/${item._id}`)}
       activeOpacity={0.7}
     >
       <View style={styles.clientCardContent}>
         <Text style={styles.clientName} numberOfLines={1}>
-          {item.document || `Cliente ${item.id.slice(-6)}`}
+          {item.document || `Cliente ${item._id.slice(-6)}`}
         </Text>
         <Text style={styles.clientDocument} numberOfLines={1}>
           {item.userId ? `Usuário: ${item.userId}` : 'Sem usuário vinculado'}
@@ -99,7 +99,7 @@ export default function ClientsListScreen() {
       </View>
 
       <TouchableOpacity
-        onPress={() => handleDeleteClient(item.id)}
+        onPress={() => handleDeleteClient(item._id)}
         style={styles.deleteButton}
       >
         <Text style={styles.deleteButtonText}>Deletar</Text>
@@ -120,6 +120,9 @@ export default function ClientsListScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>{'< Voltar'}</Text>
+        </TouchableOpacity>
         <Text style={styles.title}>Clientes</Text>
         <TouchableOpacity
           style={styles.addButton}
@@ -147,7 +150,7 @@ export default function ClientsListScreen() {
       ) : (
         <FlatList
           data={clients}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           renderItem={renderClientItem}
           ListEmptyComponent={renderEmptyState}
           contentContainerStyle={styles.listContent}
@@ -174,16 +177,24 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
+  backButton: {
+    marginRight: 8,
+  },
+  backButtonText: {
+    color: '#3b82f6',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   title: {
     fontSize: 18,
     fontWeight: '700',
     color: '#333',
+    flex: 1,
   },
   addButton: {
     width: 44,

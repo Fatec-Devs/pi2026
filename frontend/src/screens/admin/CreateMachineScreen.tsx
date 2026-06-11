@@ -8,41 +8,39 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ProductForm } from '../../components/forms/ProductForm';
-import inventoryService from '../../services/inventoryService';
+import { MachineForm } from '../../components/forms/MachineForm';
+import { machineService } from '../../services/machine.service';
 
 /**
- * Tela de cadastro de produto (admin)
- * Utiliza ProductForm para coleta de dados
- * Integra-se com inventoryService para persistência
+ * Tela de cadastro de máquina (admin)
+ * Utiliza MachineForm para coleta de dados
+ * Integra-se com machineService para persistência
  */
-export default function CreateProductScreen() {
+export default function CreateMachineScreen() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCreateProduct = async (formData: any) => {
+  const handleCreateMachine = async (formData: any) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const newProduct = await inventoryService.create(formData);
+      const newMachine = await machineService.create(formData);
 
-      Alert.alert(
-        'Sucesso',
-        `Produto "${newProduct.name}" cadastrado com sucesso!`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              router.back();
-            },
+      // Sucesso
+      Alert.alert('Sucesso', `Máquina "${newMachine.name}" cadastrada com sucesso!`, [
+        {
+          text: 'OK',
+          onPress: () => {
+            // Retornar para lista de máquinas ou voltar
+            router.back();
           },
-        ]
-      );
+        },
+      ]);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Erro ao criar produto';
+        err instanceof Error ? err.message : 'Erro ao criar máquina';
       setError(errorMessage);
       Alert.alert('Erro', errorMessage);
     } finally {
@@ -57,7 +55,7 @@ export default function CreateProductScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backButton}>{'< Voltar'}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Novo Produto</Text>
+        <Text style={styles.title}>Nova Máquina</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -72,10 +70,10 @@ export default function CreateProductScreen() {
       )}
 
       {/* Formulário */}
-      <ProductForm
-        onSubmit={handleCreateProduct}
+      <MachineForm
+        onSubmit={handleCreateMachine}
         isLoading={isLoading}
-        submitButtonLabel="Criar Produto"
+        submitButtonLabel="Criar Máquina"
       />
     </SafeAreaView>
   );

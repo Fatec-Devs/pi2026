@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { clientService } from '../../services/client.service';
+import clientService from '../../services/clientService';
 import { Client } from '../../types/domain';
 
 interface ClientSelectorProps {
@@ -32,9 +32,9 @@ export function ClientSelector({
   const loadClients = async () => {
     try {
       setIsLoading(true);
-      const response = await clientService.list();
-      console.log('Clients loaded:', response.clients);
-      setClients(response.clients);
+      const clients = await clientService.listAll();
+      console.log('Clients loaded:', clients);
+      setClients(clients);
     } catch (error: any) {
       console.error('Erro ao carregar clientes:', error);
     } finally {

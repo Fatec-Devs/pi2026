@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@/src/hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function LoginScreen() {
   const router = useRouter();

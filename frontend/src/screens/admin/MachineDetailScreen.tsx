@@ -9,52 +9,52 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Client } from '../../types/domain';
-import clientService from '../../services/clientService';
-import { ClientForm } from '../../components/forms/ClientForm';
+import { Machine } from '../../types/domain';
+import { machineService } from '../../services/machine.service';
+import { MachineForm } from '../../components/forms/MachineForm';
 
 /**
- * Tela de detalhes/edição de cliente (admin)
- * Carrega cliente por ID e permite edição
+ * Tela de detalhes/edição de máquina (admin)
+ * Carrega máquina por ID e permite edição
  */
-export default function ClientDetailScreen() {
+export default function MachineDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [client, setClient] = useState<Client | null>(null);
+  const [machine, setMachine] = useState<Machine | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      loadClient();
+      loadMachine();
     }
   }, [id]);
 
-  const loadClient = async () => {
+  const loadMachine = async () => {
     try {
       setError(null);
-      const data = await clientService.getById(id!);
-      setClient(data);
+      const data = await machineService.getById(id!);
+      setMachine(data);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Erro ao carregar cliente';
+        err instanceof Error ? err.message : 'Erro ao carregar máquina';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpdateClient = async (formData: any) => {
-    if (!client) return;
+  const handleUpdateMachine = async (formData: any) => {
+    if (!machine) return;
 
     setIsSaving(true);
     setError(null);
 
     try {
-      const updatedClient = await clientService.update(client._id, formData);
-      setClient(updatedClient);
-      Alert.alert('Sucesso', 'Cliente atualizado com sucesso!', [
+      const updatedMachine = await machineService.update(machine._id, formData);
+      setMachine(updatedMachine);
+      Alert.alert('Sucesso', 'Máquina atualizada com sucesso!', [
         {
           text: 'OK',
           onPress: () => router.back(),
@@ -62,7 +62,7 @@ export default function ClientDetailScreen() {
       ]);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Erro ao atualizar cliente';
+        err instanceof Error ? err.message : 'Erro ao atualizar máquina';
       setError(errorMessage);
       Alert.alert('Erro', errorMessage);
     } finally {
@@ -80,14 +80,14 @@ export default function ClientDetailScreen() {
     );
   }
 
-  if (!client) {
+  if (!machine) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.backButton}>{'< Voltar'}</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Cliente não encontrado</Text>
+          <Text style={styles.title}>Máquina não encontrada</Text>
           <View style={{ width: 60 }} />
         </View>
       </SafeAreaView>
@@ -101,7 +101,7 @@ export default function ClientDetailScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backButton}>{'< Voltar'}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Editar Cliente</Text>
+        <Text style={styles.title}>Editar Máquina</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -116,9 +116,9 @@ export default function ClientDetailScreen() {
       )}
 
       {/* Formulário */}
-      <ClientForm
-        initialData={client}
-        onSubmit={handleUpdateClient}
+      <MachineForm
+        initialData={machine}
+        onSubmit={handleUpdateMachine}
         isLoading={isSaving}
         submitButtonLabel="Atualizar"
       />

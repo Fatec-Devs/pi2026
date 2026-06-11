@@ -11,28 +11,28 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { InventoryItem } from '../../types/domain';
-import inventoryService from '../../services/inventoryService';
+import { Machine } from '../../types/domain';
+import { machineService } from '../../services/machine.service';
 
 /**
- * Tela de listagem de produtos (admin)
- * Exibe todos os produtos em estoque
+ * Tela de listagem de máquinas (admin)
+ * Exibe todas as máquinas e permite ir para criar nova
  */
-export default function ProductsListScreen() {
+export default function MachinesListScreen() {
   const router = useRouter();
-  const [products, setProducts] = useState<InventoryItem[]>([]);
+  const [machines, setMachines] = useState<Machine[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadProducts = async () => {
+  const loadMachines = async () => {
     try {
       setError(null);
-      const data = await inventoryService.listAll();
-      setProducts(data);
+      const data = await machineService.list();
+      setMachines(data);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Erro ao carregar produtos';
+        err instanceof Error ? err.message : 'Erro ao carregar máquinas';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -41,20 +41,20 @@ export default function ProductsListScreen() {
   };
 
   useEffect(() => {
-    loadProducts();
+    loadMachines();
   }, []);
 
-  // Recarregar ao retornar da tela de criar produto
+  // Recarregar ao retornar da tela de criar máquina
   useFocusEffect(
     React.useCallback(() => {
-      loadProducts();
+      loadMachines();
     }, [])
   );
 
-  const handleDeleteProduct = (productId: string, productName: string) => {
+  const handleDeleteMachine = (machineId: string, machineName?: string) => {
     Alert.alert(
       'Confirmar exclusão',
-      `Tem certeza que deseja excluir "${productName}"?`,
+      `Tem certeza que deseja excluir esta máquina?`,
       [
         {
           text: 'Cancelar',
@@ -65,12 +65,12 @@ export default function ProductsListScreen() {
           text: 'Excluir',
           onPress: async () => {
             try {
-              await inventoryService.delete(productId);
-              Alert.alert('Sucesso', 'Produto excluído com sucesso');
-              setProducts((prev) => prev.filter((p) => p.id !== productId));
+              await machineService.delete(machineId);
+              Alert.alert('Sucesso', 'Máquina excluída com sucesso');
+              setMachines((prev) => prev.filter((m) => m._id !== machineId));
             } catch (err) {
               const errorMessage =
-                err instanceof Error ? err.message : 'Erro ao excluir produto';
+                err instanceof Error ? err.message : 'Erro ao excluir máquina';
               Alert.alert('Erro', errorMessage);
             }
           },
@@ -80,72 +80,71 @@ export default function ProductsListScreen() {
     );
   };
 
-  const getStockStatusColor = (quantity: number, minStock: number): string => {
-    if (quantity < minStock) {
-      return '#ef4444'; // Vermelho - crítico
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'ATIVO':
+        return '#10b981';
+      case 'INATIVO':
+        return '#ef4444';
+      case 'EM_MANUTENCAO':
+        return '#f59e0b';
+      default:
+        return '#6b7280';
     }
-    if (quantity <= minStock * 1.2) {
-      return '#f59e0b'; // Laranja - baixo
-    }
-    return '#10b981'; // Verde - ok
   };
 
-  const renderProductItem = ({ item }: { item: InventoryItem }) => (
+  const renderMachineItem = ({ item }: { item: Machine }) => (
     <TouchableOpacity
-      style={styles.productCard}
-      onPress={() => router.push(`/admin/products/${item.id}`)}
+      style={styles.machineCard}
+      onPress={() => router.push(`/admin/machines/${item._id}`)}
       activeOpacity={0.7}
     >
-      {/* Barra de status de estoque */}
+      {/* Barra de status */}
       <View
         style={[
-          styles.stockIndicator,
+          styles.statusIndicator,
           {
-            backgroundColor: getStockStatusColor(item.quantity, item.minStock),
+            backgroundColor: getStatusColor(item.status),
           },
         ]}
       />
 
-      <View style={styles.productCardContent}>
-        <Text style={styles.productName} numberOfLines={1}>
+      <View style={styles.machineCardContent}>
+        <Text style={styles.machineName} numberOfLines={1}>
           {item.name}
         </Text>
-        <Text style={styles.productSku} numberOfLines={1}>
-          SKU: {item.sku}
+        <Text style={styles.machineBrand} numberOfLines={1}>
+          {item.brand || 'Sem marca'} {item.model || ''}
         </Text>
 
-        <View style={styles.productDetails}>
-          <View style={styles.detailColumn}>
-            <Text style={styles.detailLabel}>Quantidade</Text>
-            <Text
-              style={[
-                styles.detailValue,
-                {
-                  color: getStockStatusColor(
-                    item.quantity,
-                    item.minStock
-                  ),
-                },
-              ]}
-            >
-              {item.quantity} {item.unit}
+        <View style={styles.machineDetails}>
+          {item.serialNumber && (
+            <Text style={styles.machineSerial}>
+              Série: {item.serialNumber}
             </Text>
-          </View>
+          )}
+          {item.location && (
+            <Text style={styles.machineLocation}>
+              Local: {item.location}
+            </Text>
+          )}
+        </View>
 
-          <View style={styles.detailColumn}>
-            <Text style={styles.detailLabel}>Estoque Mín.</Text>
-            <Text style={styles.detailValue}>{item.minStock}</Text>
-          </View>
-
-          <View style={styles.detailColumn}>
-            <Text style={styles.detailLabel}>Custo Unit.</Text>
-            <Text style={styles.detailValue}>R$ {item.unitCost.toFixed(2)}</Text>
-          </View>
+        <View style={styles.statusRow}>
+          <Text style={styles.statusLabel}>Status:</Text>
+          <Text
+            style={[
+              styles.statusValue,
+              { color: getStatusColor(item.status) },
+            ]}
+          >
+            {item.status}
+          </Text>
         </View>
       </View>
 
       <TouchableOpacity
-        onPress={() => handleDeleteProduct(item.id, item.name)}
+        onPress={() => handleDeleteMachine(item._id, item.name)}
         style={styles.deleteButton}
       >
         <Text style={styles.deleteButtonText}>Deletar</Text>
@@ -155,9 +154,9 @@ export default function ProductsListScreen() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyStateTitle}>Nenhum produto encontrado</Text>
+      <Text style={styles.emptyStateTitle}>Nenhuma máquina encontrada</Text>
       <Text style={styles.emptyStateDescription}>
-        Clique no botão + para criar um novo produto
+        Clique no botão + para criar uma nova máquina
       </Text>
     </View>
   );
@@ -166,10 +165,13 @@ export default function ProductsListScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Produtos</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>{'< Voltar'}</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Máquinas</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => router.push('/admin/products/create')}
+          onPress={() => router.push('/admin/machines/create')}
         >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
@@ -192,9 +194,9 @@ export default function ProductsListScreen() {
         </View>
       ) : (
         <FlatList
-          data={products}
-          keyExtractor={(item) => item.id}
-          renderItem={renderProductItem}
+          data={machines}
+          keyExtractor={(item) => item._id}
+          renderItem={renderMachineItem}
           ListEmptyComponent={renderEmptyState}
           contentContainerStyle={styles.listContent}
           refreshControl={
@@ -202,7 +204,7 @@ export default function ProductsListScreen() {
               refreshing={isRefreshing}
               onRefresh={() => {
                 setIsRefreshing(true);
-                loadProducts();
+                loadMachines();
               }}
             />
           }
@@ -220,16 +222,24 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
+  backButton: {
+    marginRight: 8,
+  },
+  backButtonText: {
+    color: '#3b82f6',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   title: {
     fontSize: 18,
     fontWeight: '700',
     color: '#333',
+    flex: 1,
   },
   addButton: {
     width: 44,
@@ -275,7 +285,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     flexGrow: 1,
   },
-  productCard: {
+  machineCard: {
     flexDirection: 'row',
     backgroundColor: '#f9fafb',
     borderWidth: 1,
@@ -285,41 +295,49 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'stretch',
   },
-  stockIndicator: {
+  statusIndicator: {
     width: 4,
   },
-  productCardContent: {
+  machineCardContent: {
     flex: 1,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
-  productName: {
+  machineName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
     marginBottom: 4,
   },
-  productSku: {
+  machineBrand: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 4,
+  },
+  machineDetails: {
+    marginBottom: 4,
+  },
+  machineSerial: {
     fontSize: 12,
     color: '#666',
-    marginBottom: 8,
   },
-  productDetails: {
+  machineLocation: {
+    fontSize: 12,
+    color: '#666',
+  },
+  statusRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
   },
-  detailColumn: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 11,
+  statusLabel: {
+    fontSize: 12,
     color: '#999',
-    marginBottom: 2,
+    marginRight: 4,
   },
-  detailValue: {
+  statusValue: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
   },
   deleteButton: {
     backgroundColor: '#ef4444',

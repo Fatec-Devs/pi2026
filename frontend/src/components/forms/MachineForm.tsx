@@ -10,16 +10,16 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { InventoryItem } from '../../types/domain';
+import { Machine } from '../../types/domain';
 
-interface ProductFormProps {
-  initialData?: Partial<InventoryItem>;
+interface MachineFormProps {
+  initialData?: Partial<Machine>;
   onSubmit: (data: any) => Promise<void>;
   isLoading?: boolean;
   submitButtonLabel?: string;
 }
 
-export const ProductForm: React.FC<ProductFormProps> = ({
+export const MachineForm: React.FC<MachineFormProps> = ({
   initialData = {},
   onSubmit,
   isLoading = false,
@@ -27,11 +27,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     name: initialData.name || '',
-    sku: initialData.sku || '',
-    unit: initialData.unit || 'UNIDADE',
-    quantity: initialData.quantity?.toString() || '0',
-    minStock: initialData.minStock?.toString() || '0',
-    unitCost: initialData.unitCost?.toString() || '0',
+    brand: initialData.brand || '',
+    model: initialData.model || '',
+    serialNumber: initialData.serialNumber || '',
+    location: initialData.location || '',
+    status: initialData.status || 'ATIVO',
     active: initialData.active !== undefined ? initialData.active : true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -55,28 +55,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
     // Validações básicas
     if (!formData.name?.trim()) {
-      newErrors.name = 'Nome do produto é obrigatório';
-    }
-    if (!formData.sku?.trim()) {
-      newErrors.sku = 'SKU é obrigatório';
-    }
-    if (!formData.unit?.trim()) {
-      newErrors.unit = 'Unidade é obrigatória';
-    }
-
-    const quantity = parseFloat(formData.quantity);
-    if (isNaN(quantity) || quantity < 0) {
-      newErrors.quantity = 'Quantidade deve ser um número positivo';
-    }
-
-    const minStock = parseFloat(formData.minStock);
-    if (isNaN(minStock) || minStock < 0) {
-      newErrors.minStock = 'Estoque mínimo deve ser um número positivo';
-    }
-
-    const unitCost = parseFloat(formData.unitCost);
-    if (isNaN(unitCost) || unitCost < 0) {
-      newErrors.unitCost = 'Custo unitário deve ser um número positivo';
+      newErrors.name = 'Nome da máquina é obrigatório';
     }
 
     setErrors(newErrors);
@@ -89,13 +68,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
 
     try {
-      const submitData = {
-        ...formData,
-        quantity: parseFloat(formData.quantity),
-        minStock: parseFloat(formData.minStock),
-        unitCost: parseFloat(formData.unitCost),
-      };
-      await onSubmit(submitData);
+      await onSubmit(formData);
     } catch (error) {
       console.error('Erro ao submeter formulário:', error);
     }
@@ -112,10 +85,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       >
         {/* Nome */}
         <View style={styles.field}>
-          <Text style={styles.label}>Nome do Produto*</Text>
+          <Text style={styles.label}>Nome da Máquina*</Text>
           <TextInput
             style={[styles.input, errors.name && styles.inputError]}
-            placeholder="Digite o nome do produto"
+            placeholder="Digite o nome da máquina"
             placeholderTextColor="#999"
             value={formData.name}
             onChangeText={(value) => handleInputChange('name', value)}
@@ -124,92 +97,71 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
         </View>
 
-        {/* SKU */}
+        {/* Marca */}
         <View style={styles.field}>
-          <Text style={styles.label}>SKU*</Text>
+          <Text style={styles.label}>Marca</Text>
           <TextInput
-            style={[styles.input, errors.sku && styles.inputError]}
-            placeholder="Código SKU"
+            style={styles.input}
+            placeholder="Digite a marca"
             placeholderTextColor="#999"
-            value={formData.sku}
-            onChangeText={(value) => handleInputChange('sku', value)}
+            value={formData.brand}
+            onChangeText={(value) => handleInputChange('brand', value)}
             editable={!isLoading}
           />
-          {errors.sku && <Text style={styles.errorText}>{errors.sku}</Text>}
         </View>
 
-        {/* Unidade */}
+        {/* Modelo */}
         <View style={styles.field}>
-          <Text style={styles.label}>Unidade*</Text>
+          <Text style={styles.label}>Modelo</Text>
           <TextInput
-            style={[styles.input, errors.unit && styles.inputError]}
-            placeholder="Ex: UNIDADE, KG, LT, M"
+            style={styles.input}
+            placeholder="Digite o modelo"
             placeholderTextColor="#999"
-            value={formData.unit}
-            onChangeText={(value) => handleInputChange('unit', value)}
+            value={formData.model}
+            onChangeText={(value) => handleInputChange('model', value)}
             editable={!isLoading}
           />
-          {errors.unit && <Text style={styles.errorText}>{errors.unit}</Text>}
         </View>
 
-        {/* Quantidade */}
+        {/* Número de Série */}
         <View style={styles.field}>
-          <Text style={styles.label}>Quantidade*</Text>
+          <Text style={styles.label}>Número de Série</Text>
           <TextInput
-            style={[
-              styles.input,
-              errors.quantity && styles.inputError,
-            ]}
-            placeholder="0"
+            style={styles.input}
+            placeholder="Digite o número de série"
             placeholderTextColor="#999"
-            value={formData.quantity}
-            onChangeText={(value) => handleInputChange('quantity', value)}
+            value={formData.serialNumber}
+            onChangeText={(value) => handleInputChange('serialNumber', value)}
             editable={!isLoading}
-            keyboardType="decimal-pad"
           />
-          {errors.quantity && (
-            <Text style={styles.errorText}>{errors.quantity}</Text>
-          )}
         </View>
 
-        {/* Estoque Mínimo */}
+        {/* Localização */}
         <View style={styles.field}>
-          <Text style={styles.label}>Estoque Mínimo*</Text>
+          <Text style={styles.label}>Localização</Text>
           <TextInput
-            style={[
-              styles.input,
-              errors.minStock && styles.inputError,
-            ]}
-            placeholder="0"
+            style={[styles.input, styles.notesInput]}
+            placeholder="Digite a localização da máquina"
             placeholderTextColor="#999"
-            value={formData.minStock}
-            onChangeText={(value) => handleInputChange('minStock', value)}
+            value={formData.location}
+            onChangeText={(value) => handleInputChange('location', value)}
             editable={!isLoading}
-            keyboardType="decimal-pad"
+            multiline
+            numberOfLines={3}
           />
-          {errors.minStock && (
-            <Text style={styles.errorText}>{errors.minStock}</Text>
-          )}
         </View>
 
-        {/* Custo Unitário */}
+        {/* Status */}
         <View style={styles.field}>
-          <Text style={styles.label}>Custo Unitário (R$)*</Text>
+          <Text style={styles.label}>Status</Text>
           <TextInput
-            style={[
-              styles.input,
-              errors.unitCost && styles.inputError,
-            ]}
-            placeholder="0,00"
+            style={styles.input}
+            placeholder="ATIVO, INATIVO, EM_MANUTENCAO"
             placeholderTextColor="#999"
-            value={formData.unitCost}
-            onChangeText={(value) => handleInputChange('unitCost', value)}
+            value={formData.status}
+            onChangeText={(value) => handleInputChange('status', value)}
             editable={!isLoading}
-            keyboardType="decimal-pad"
           />
-          {errors.unitCost && (
-            <Text style={styles.errorText}>{errors.unitCost}</Text>
-          )}
         </View>
 
         {/* Botão Submit */}
@@ -268,6 +220,10 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 12,
     marginTop: 4,
+  },
+  notesInput: {
+    minHeight: 90,
+    textAlignVertical: 'top',
   },
   button: {
     backgroundColor: '#3b82f6',

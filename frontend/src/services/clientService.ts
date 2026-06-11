@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import { api } from './api';
 import { Client } from '../types/domain';
 
 class ClientService {
@@ -7,11 +7,26 @@ class ClientService {
    */
   async listAll(): Promise<Client[]> {
     try {
-      const response = await apiClient.get('/clients');
-      if (!Array.isArray(response.data)) {
+      const response = await api.get<{ clients: Client[]; total: number }>('/clients');
+      if (!response.clients || !Array.isArray(response.clients)) {
         throw new Error('Resposta inválida do servidor ao listar clientes');
       }
-      return response.data;
+      return response.clients;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Obtém o cliente do usuário autenticado
+   */
+  async getMe(): Promise<Client> {
+    try {
+      const response = await api.get<Client>('/clients/me');
+      if (!response) {
+        throw new Error('Resposta inválida do servidor ao obter cliente');
+      }
+      return response;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -22,8 +37,11 @@ class ClientService {
    */
   async getById(id: string): Promise<Client> {
     try {
-      const response = await apiClient.get(`/clients/${id}`);
-      return response.data;
+      const response = await api.get<Client>(`/clients/${id}`);
+      if (!response) {
+        throw new Error('Resposta inválida do servidor ao obter cliente');
+      }
+      return response;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -39,8 +57,11 @@ class ClientService {
     notes?: string;
   }): Promise<Client> {
     try {
-      const response = await apiClient.post('/clients', data);
-      return response.data;
+      const response = await api.post<Client>('/clients', data);
+      if (!response) {
+        throw new Error('Resposta inválida do servidor ao criar cliente');
+      }
+      return response;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -51,8 +72,11 @@ class ClientService {
    */
   async update(id: string, data: Partial<Client>): Promise<Client> {
     try {
-      const response = await apiClient.put(`/clients/${id}`, data);
-      return response.data;
+      const response = await api.put<Client>(`/clients/${id}`, data);
+      if (!response) {
+        throw new Error('Resposta inválida do servidor ao atualizar cliente');
+      }
+      return response;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -63,16 +87,15 @@ class ClientService {
    */
   async delete(id: string): Promise<void> {
     try {
-      await apiClient.delete(`/clients/${id}`);
+      await api.delete(`/clients/${id}`);
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
   private handleError(error: any): Error {
-    if (error.response) {
-      const { status, data } = error.response;
-      return new Error(data?.message || `Erro: ${status}`);
+    if (error && typeof error === 'object' && 'message' in error) {
+      return new Error(error.message as string);
     }
     return new Error('Erro ao conectar com o servidor');
   }
