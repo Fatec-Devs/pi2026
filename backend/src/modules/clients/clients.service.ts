@@ -7,12 +7,43 @@ function toPublicClient(client: ClientDocument) {
   return {
     id: client._id.toString(),
     userId: client.userId?.toString(),
+    name: client.name,
     document: client.document,
+    phone: client.phone,
     address: client.address,
     notes: client.notes,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
+}
+
+function maskCpf(value?: string) {
+  if (!value) return value;
+
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (!digits) return undefined;
+
+  return digits
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function maskPhone(value?: string) {
+  if (!value) return value;
+
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (!digits) return undefined;
+
+  if (digits.length <= 10) {
+    return digits
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{4})(\d)/, '$1-$2');
+  }
+
+  return digits
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2');
 }
 
 export async function findAll() {
@@ -35,12 +66,16 @@ export async function findById(id: string) {
 
 export async function create(data: {
   userId?: string;
+  name?: string;
   document?: string;
+  phone?: string;
   address?: string;
   notes?: string;
 }) {
   const payload: Record<string, unknown> = {
-    document: data.document?.trim() || undefined,
+    name: data.name?.trim() || undefined,
+    document: maskCpf(data.document?.trim()),
+    phone: maskPhone(data.phone?.trim()),
     address: data.address?.trim() || undefined,
     notes: data.notes?.trim() || undefined,
   };
@@ -58,7 +93,7 @@ export async function create(data: {
 
 export async function update(
   id: string,
-  data: Partial<{ document: string; address: string; notes: string }>,
+  data: Partial<{ name: string; document: string; phone: string; address: string; notes: string }>,
 ) {
   if (!Types.ObjectId.isValid(id)) {
     throw new AppError('Cliente não encontrado', 'CLIENT_NOT_FOUND', 404);
@@ -67,7 +102,9 @@ export async function update(
   const client = await ClientModel.findByIdAndUpdate(
     id,
     {
-      ...(data.document !== undefined && { document: data.document.trim() || undefined }),
+      ...(data.name !== undefined && { name: data.name.trim() || undefined }),
+      ...(data.document !== undefined && { document: maskCpf(data.document.trim()) }),
+      ...(data.phone !== undefined && { phone: maskPhone(data.phone.trim()) }),
       ...(data.address !== undefined && { address: data.address.trim() || undefined }),
       ...(data.notes !== undefined && { notes: data.notes.trim() || undefined }),
     },

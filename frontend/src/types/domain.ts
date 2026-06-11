@@ -16,8 +16,10 @@ export interface User {
 
 export interface Client {
   _id: string;
-  userId: string;
+  userId?: string;
+  name?: string;
   document?: string;
+  phone?: string;
   address?: string;
   notes?: string;
   createdAt?: string;
@@ -32,6 +34,7 @@ export interface Machine {
   model?: string;
   serialNumber?: string;
   location?: string;
+  notes?: string;
   status: string;
   active: boolean;
   createdAt?: string;

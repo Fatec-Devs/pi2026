@@ -8,6 +8,7 @@ export interface IMachine {
   model?: string;
   serialNumber?: string;
   location?: string;
+  notes?: string;
   status: MachineStatus;
   active: boolean;
 }
@@ -20,6 +21,7 @@ const machineSchema = new Schema<IMachine>(
     model: { type: String, trim: true },
     serialNumber: { type: String, trim: true, unique: true, sparse: true },
     location: { type: String, trim: true },
+    notes: { type: String, trim: true },
     status: {
       type: String,
       required: true,

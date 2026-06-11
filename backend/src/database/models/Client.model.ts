@@ -2,7 +2,9 @@ import { Schema, model, Document, Types } from 'mongoose';
 
 export interface ClientDocument extends Document {
   userId?: Types.ObjectId;
+  name?: string;
   document?: string;
+  phone?: string;
   address?: string;
   notes?: string;
 }
@@ -10,7 +12,9 @@ export interface ClientDocument extends Document {
 const clientSchema = new Schema<ClientDocument>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', unique: true, sparse: true },
+    name: { type: String, trim: true },
     document: { type: String, trim: true, unique: true, sparse: true },
+    phone: { type: String, trim: true },
     address: { type: String, trim: true },
     notes: { type: String, trim: true },
   },

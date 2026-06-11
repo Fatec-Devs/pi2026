@@ -12,6 +12,33 @@ import {
 } from 'react-native';
 import { Client } from '../../types/domain';
 
+function digitsOnly(value: string) {
+  return value.replace(/\D/g, '');
+}
+
+function formatCpf(value: string) {
+  const digits = digitsOnly(value).slice(0, 11);
+
+  return digits
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function formatPhone(value: string) {
+  const digits = digitsOnly(value).slice(0, 11);
+
+  if (digits.length <= 10) {
+    return digits
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{4})(\d)/, '$1-$2');
+  }
+
+  return digits
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2');
+}
+
 interface ClientFormProps {
   initialData?: Partial<Client>;
   onSubmit: (data: any) => Promise<void>;
@@ -26,7 +53,9 @@ export const ClientForm: React.FC<ClientFormProps> = ({
   submitButtonLabel = 'Salvar',
 }) => {
   const [formData, setFormData] = useState({
-    document: initialData.document || '',
+    name: initialData.name || '',
+    document: formatCpf(initialData.document || ''),
+    phone: formatPhone(initialData.phone || ''),
     address: initialData.address || '',
     notes: initialData.notes || '',
   });
@@ -50,8 +79,14 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     const newErrors: Record<string, string> = {};
 
     // Validações básicas
+    if (!formData.name?.trim()) {
+      newErrors.name = 'Nome é obrigatório';
+    }
     if (!formData.document?.trim()) {
       newErrors.document = 'Documento é obrigatório';
+    }
+    if (!formData.phone?.trim()) {
+      newErrors.phone = 'Telefone é obrigatório';
     }
     if (!formData.address?.trim()) {
       newErrors.address = 'Endereço é obrigatório';
@@ -83,24 +118,52 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Nome */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Nome*</Text>
+          <TextInput
+            style={[styles.input, errors.name && styles.inputError]}
+            placeholder="Digite o nome do cliente"
+            placeholderTextColor="#999"
+            value={formData.name}
+            onChangeText={(value) => handleInputChange('name', value)}
+            editable={!isLoading}
+          />
+          {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+        </View>
+
         {/* Documento */}
         <View style={styles.field}>
           <Text style={styles.label}>Documento (CPF/CNPJ)*</Text>
           <TextInput
-            style={[
-              styles.input,
-              errors.document && styles.inputError,
-            ]}
+            style={[styles.input, errors.document && styles.inputError]}
             placeholder="Digite o documento"
             placeholderTextColor="#999"
             value={formData.document}
-            onChangeText={(value) => handleInputChange('document', value)}
+            onChangeText={(value) => handleInputChange('document', formatCpf(value))}
             editable={!isLoading}
-            keyboardType="default"
+            keyboardType="number-pad"
+            maxLength={14}
           />
           {errors.document && (
             <Text style={styles.errorText}>{errors.document}</Text>
           )}
+        </View>
+
+        {/* Telefone */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Telefone*</Text>
+          <TextInput
+            style={[styles.input, errors.phone && styles.inputError]}
+            placeholder="(00) 00000-0000"
+            placeholderTextColor="#999"
+            value={formData.phone}
+            onChangeText={(value) => handleInputChange('phone', formatPhone(value))}
+            editable={!isLoading}
+            keyboardType="phone-pad"
+            maxLength={15}
+          />
+          {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
         </View>
 
         {/* Endereço */}

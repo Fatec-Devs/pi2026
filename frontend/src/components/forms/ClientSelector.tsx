@@ -57,7 +57,7 @@ export function ClientSelector({
       >
         <View className="flex-1 flex-row justify-between items-center">
           <Text className={selectedClient ? 'text-gray-900' : 'text-gray-500'}>
-            {selectedClient ? selectedClient.document || selectedClient._id : 'Selecione um cliente'}
+            {selectedClient ? selectedClient.name || selectedClient.document || selectedClient._id : 'Selecione um cliente'}
           </Text>
           <Text className="text-gray-500 ml-2">{isDropdownOpen ? '▲' : '▼'}</Text>
         </View>
@@ -92,11 +92,13 @@ export function ClientSelector({
                 }`}
               >
                 <Text className="text-gray-900 font-medium text-base">
-                  {client.document || 'Sem documento'}
+                  {client.name || 'Sem nome'}
                 </Text>
-                {client.address && (
-                  <Text className="text-gray-600 text-sm mt-1">{client.address}</Text>
-                )}
+                <Text className="text-gray-600 text-sm mt-1">
+                  {client.document || 'Sem documento'}
+                  {client.phone ? ` • ${client.phone}` : ''}
+                </Text>
+                {client.address && <Text className="text-gray-600 text-sm mt-1">{client.address}</Text>}
               </TouchableOpacity>
             ))
           )}
