@@ -123,6 +123,25 @@ class ServiceOrderService {
     }
     return response;
   }
+
+  async updateServiceTime(
+    id: string,
+    serviceIndex: number,
+    payload: {
+      timeSpentHours: number;
+      timeSpentDate?: string;
+      timeNotes?: string;
+    }
+  ): Promise<ServiceOrder> {
+    const response = await api.patch<ServiceOrder>(
+      `/service-orders/${id}/services/${serviceIndex}/time`,
+      payload
+    );
+    if (!response) {
+      throw new Error('Resposta inválida do servidor ao registrar tempo gasto');
+    }
+    return response;
+  }
 }
 
 // Instância única do serviço

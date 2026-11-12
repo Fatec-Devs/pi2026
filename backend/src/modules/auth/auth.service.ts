@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
-import { UserModel, UserDocument } from '../../database/models/user.model';
+import { UserModel, UserDocument } from '../../database/models/User.model';
 import { env } from '../../config/env';
 import { AppError } from '../../config/AppError';
 

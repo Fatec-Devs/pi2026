@@ -1,6 +1,6 @@
-export { UserModel } from './user.model';
-export { ClientModel } from './client.model';
-export { MachineModel } from './machine.model';
-export { ServiceOrderModel } from './serviceOrder.model';
+export { UserModel } from './User.model';
+export { ClientModel } from './Client.model';
+export { MachineModel } from './Machine.model';
+export { ServiceOrderModel } from './ServiceOrder.model';
 export { InventoryItemModel } from './inventoryItem.model';
 export { FinancialEntryModel } from './financialEntry.model';

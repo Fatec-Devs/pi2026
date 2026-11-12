@@ -1,4 +1,4 @@
-import { Machine, IMachine } from '../database/models/machine.model';
+import { Machine, IMachine } from '../database/models/Machine.model';
 import mongoose from 'mongoose';
 
 export class MachineRepository {

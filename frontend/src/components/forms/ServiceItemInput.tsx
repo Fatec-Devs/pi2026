@@ -25,21 +25,19 @@ export function ServiceItemInput({
   }>({});
 
   const handleChange = (field: keyof ServiceItemType, text: string) => {
-    const newValue = { ...value };
+    const newValue = { ...value } as Record<string, string | number>;
 
     if (field === 'description') {
       newValue[field] = text;
     } else {
-      // Campos numéricos
       const numValue = parseFloat(text) || 0;
       newValue[field] = numValue;
     }
 
-    onChange(newValue);
-    
-    // Limpa erro do campo editado
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    onChange(newValue as unknown as ServiceItemType);
+
+    if (errors[field as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [field as keyof typeof errors]: undefined }));
     }
   };
 

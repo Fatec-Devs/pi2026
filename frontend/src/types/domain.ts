@@ -42,6 +42,9 @@ export interface ServiceItemInput {
   description: string;
   estimatedHours: number;
   price: number;
+  timeSpentHours?: number;
+  timeSpentDate?: string;
+  timeNotes?: string;
 }
 
 export interface MaterialUsageInput {
@@ -59,6 +62,7 @@ export interface CreateServiceOrderDTO {
 
 export interface ServiceOrder {
   _id: string;
+  sequence?: number;
   clientId: string;
   machineId: string;
   status: ServiceOrderStatus;

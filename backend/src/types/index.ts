@@ -5,6 +5,9 @@ export interface ServiceItemInput {
   description: string;
   estimatedHours: number;
   price: number;
+  timeSpentHours?: number;
+  timeSpentDate?: string | Date;
+  timeNotes?: string;
 }
 
 export interface MaterialUsageInput {

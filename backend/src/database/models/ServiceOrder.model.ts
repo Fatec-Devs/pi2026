@@ -5,6 +5,9 @@ export interface ServiceOrderServiceItem {
   description: string;
   estimatedHours: number;
   price: number;
+  timeSpentHours?: number;
+  timeSpentDate?: Date | string;
+  timeNotes?: string;
 }
 
 export interface ServiceOrderMaterialUsage {
@@ -16,6 +19,7 @@ export interface ServiceOrderMaterialUsage {
 export interface IServiceOrder extends Document {
   clientId: Types.ObjectId;
   machineId: Types.ObjectId;
+  sequence?: number;
   status: ServiceOrderStatus;
   services: ServiceOrderServiceItem[];
   materials: ServiceOrderMaterialUsage[];
@@ -26,6 +30,8 @@ export interface IServiceOrder extends Document {
   approvedAt?: Date;
   startedAt?: Date;
   finishedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   stockAdjustmentStatus: 'PENDING' | 'APPLIED' | 'FAILED';
 }
 
@@ -34,6 +40,9 @@ const serviceOrderServiceItemSchema = new Schema<ServiceOrderServiceItem>(
     description: { type: String, required: true, trim: true },
     estimatedHours: { type: Number, required: true, min: 0 },
     price: { type: Number, required: true, min: 0 },
+    timeSpentHours: { type: Number, default: 0, min: 0 },
+    timeSpentDate: { type: Schema.Types.Mixed, default: null },
+    timeNotes: { type: String, trim: true, default: '' },
   },
   { _id: false },
 );

@@ -1,4 +1,4 @@
-import { ServiceOrder, IServiceOrder } from '../database/models/serviceOrder.model';
+import { ServiceOrder, IServiceOrder } from '../database/models/ServiceOrder.model';
 import mongoose from 'mongoose';
 
 export class ServiceOrderRepository {
@@ -140,6 +140,33 @@ export class ServiceOrderRepository {
       { laborCost, partsCost, totalCost },
       { new: true, runValidators: true }
     )
+      .populate('clientId')
+      .populate('machineId');
+  }
+
+  async updateServiceTime(
+    id: string,
+    serviceIndex: number,
+    timeSpentHours: number,
+    timeSpentDate?: string | Date,
+    timeNotes?: string
+  ): Promise<IServiceOrder | null> {
+    const update: Record<string, any> = {
+      [`services.${serviceIndex}.timeSpentHours`]: timeSpentHours,
+    };
+
+    if (timeSpentDate !== undefined) {
+      update[`services.${serviceIndex}.timeSpentDate`] = timeSpentDate;
+    }
+
+    if (timeNotes !== undefined) {
+      update[`services.${serviceIndex}.timeNotes`] = timeNotes;
+    }
+
+    return await ServiceOrder.findByIdAndUpdate(id, update, {
+      new: true,
+      runValidators: true,
+    })
       .populate('clientId')
       .populate('machineId');
   }

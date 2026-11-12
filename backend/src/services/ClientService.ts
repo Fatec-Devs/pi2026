@@ -1,6 +1,6 @@
 import { ClientRepository } from '../repositories/ClientRepository';
 import { AppError } from '../config/AppError';
-import { IClient } from '../database/models/client.model';
+import { IClient } from '../database/models/Client.model';
 
 export class ClientService {
   private clientRepository: ClientRepository;

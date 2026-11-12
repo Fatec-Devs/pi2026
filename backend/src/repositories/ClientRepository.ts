@@ -1,4 +1,4 @@
-import { Client, IClient } from '../database/models/client.model';
+import { Client, IClient } from '../database/models/Client.model';
 import mongoose from 'mongoose';
 
 export class ClientRepository {

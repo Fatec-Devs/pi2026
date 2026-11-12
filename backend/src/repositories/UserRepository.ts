@@ -1,4 +1,4 @@
-import { User, IUser } from '../database/models/user.model';
+import { User, IUser } from '../database/models/User.model';
 
 export class UserRepository {
   /**

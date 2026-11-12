@@ -71,4 +71,13 @@ router.patch('/:id/costs', requireRole('ADMIN'), async (req, res, next) => {
   }
 });
 
+// PATCH /service-orders/:id/services/:serviceIndex/time
+router.patch('/:id/services/:serviceIndex/time', requireRole('ADMIN'), async (req, res, next) => {
+  try {
+    await serviceOrderController.updateServiceTime(req, res);
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

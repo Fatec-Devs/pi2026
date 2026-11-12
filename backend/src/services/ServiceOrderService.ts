@@ -2,7 +2,8 @@ import { ServiceOrderRepository } from '../repositories/ServiceOrderRepository';
 import { ClientRepository } from '../repositories/ClientRepository';
 import { MachineRepository } from '../repositories/MachineRepository';
 import { AppError } from '../config/AppError';
-import { IServiceOrder } from '../database/models/serviceOrder.model';
+import { IServiceOrder } from '../database/models/ServiceOrder.model';
+import { FinancialEntryModel } from '../database/models/financialEntry.model';
 
 export class ServiceOrderService {
   private serviceOrderRepository: ServiceOrderRepository;
@@ -97,13 +98,17 @@ export class ServiceOrderService {
       }
     });
 
+    const servicesTotal = data.services.reduce((total, service) => {
+      return total + (service.price || 0);
+    }, 0);
+
     // Define valores padrão
     if (!data.status) {
       data.status = 'ORCAMENTO';
     }
 
     if (data.laborCost === undefined) {
-      data.laborCost = 0;
+      data.laborCost = servicesTotal;
     }
 
     if (data.partsCost === undefined) {
@@ -111,10 +116,14 @@ export class ServiceOrderService {
     }
 
     if (data.totalCost === undefined) {
-      data.totalCost = 0;
+      data.totalCost = data.laborCost + data.partsCost;
     }
 
-    return await this.serviceOrderRepository.create(data);
+    const createdServiceOrder = await this.serviceOrderRepository.create(data);
+
+    await this.syncFinanceEntry(createdServiceOrder);
+
+    return createdServiceOrder;
   }
 
   /**
@@ -253,7 +262,13 @@ export class ServiceOrderService {
       }
     }
 
-    return await this.serviceOrderRepository.updateStatus(id, status);
+    const updatedServiceOrder = await this.serviceOrderRepository.updateStatus(id, status);
+
+    if (updatedServiceOrder && status === 'APROVADO') {
+      await this.syncFinanceEntry(updatedServiceOrder);
+    }
+
+    return updatedServiceOrder;
   }
 
   /**
@@ -347,11 +362,101 @@ export class ServiceOrderService {
       );
     }
 
-    return await this.serviceOrderRepository.updateCosts(
+    const updatedServiceOrder = await this.serviceOrderRepository.updateCosts(
       id,
       laborCost,
       partsCost,
       totalCost
+    );
+
+    if (updatedServiceOrder && updatedServiceOrder.status !== 'ORCAMENTO') {
+      await this.syncFinanceEntry(updatedServiceOrder);
+    }
+
+    return updatedServiceOrder;
+  }
+
+  async updateServiceTime(
+    id: string,
+    serviceIndex: number,
+    timeSpentHours: number,
+    timeSpentDate?: string,
+    timeNotes?: string,
+    userRole?: string
+  ) {
+    if (userRole !== 'ADMIN') {
+      throw new AppError(
+        'Sem permissão para registrar tempo gasto',
+        'FORBIDDEN',
+        403
+      );
+    }
+
+    const serviceOrder = await this.serviceOrderRepository.findById(id);
+
+    if (!serviceOrder) {
+      throw new AppError(
+        'Ordem de serviço não encontrada',
+        'SERVICE_ORDER_NOT_FOUND',
+        404
+      );
+    }
+
+    if (!serviceOrder.services || serviceIndex >= serviceOrder.services.length) {
+      throw new AppError(
+        'Serviço não encontrado nesta ordem de serviço',
+        'INVALID_SERVICE',
+        400
+      );
+    }
+
+    if (Number.isNaN(timeSpentHours) || timeSpentHours < 0) {
+      throw new AppError(
+        'Tempo gasto deve ser um número maior ou igual a zero',
+        'INVALID_TIME_SPENT',
+        400
+      );
+    }
+
+    const normalizedDate = timeSpentDate ? new Date(timeSpentDate) : new Date();
+    if (Number.isNaN(normalizedDate.getTime())) {
+      throw new AppError(
+        'Data de tempo gasto inválida',
+        'INVALID_TIME_DATE',
+        400
+      );
+    }
+
+    const service = serviceOrder.services[serviceIndex];
+    service.timeSpentHours = Number(timeSpentHours);
+    service.timeSpentDate = normalizedDate;
+    service.timeNotes = timeNotes?.trim() || '';
+
+    return await this.serviceOrderRepository.update(id, {
+      services: serviceOrder.services,
+    });
+  }
+
+  private async syncFinanceEntry(serviceOrder: IServiceOrder) {
+    const amount = Math.max(serviceOrder.totalCost || 0, 0);
+    const orderNumber = serviceOrder.sequence
+      ? String(serviceOrder.sequence).padStart(3, '0')
+      : serviceOrder._id.toString().slice(-6);
+
+    await FinancialEntryModel.findOneAndUpdate(
+      {
+        serviceOrderId: serviceOrder._id,
+        type: 'INCOME',
+      },
+      {
+        serviceOrderId: serviceOrder._id,
+        type: 'INCOME',
+        description: `OS ${orderNumber}`,
+        amount,
+        date: serviceOrder.updatedAt || new Date(),
+        category: 'ORDEM_SERVICO',
+      },
+      { upsert: true, new: true, runValidators: true }
     );
   }
 }
