@@ -51,8 +51,10 @@ class ClientService {
    * Cria um novo cliente
    */
   async create(data: {
-    userId: string;
+    userId?: string;
+    name: string;
     document?: string;
+    phone?: string;
     address?: string;
     notes?: string;
   }): Promise<Client> {

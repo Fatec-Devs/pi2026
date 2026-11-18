@@ -61,12 +61,14 @@ export class ClientController {
    */
   create = async (req: Request, res: Response) => {
     const userRole = req.user?.role;
-    const { userId, document, address, notes } = req.body;
+    const { userId, name, document, phone, address, notes } = req.body;
 
     const client = await this.clientService.create(
       {
         userId,
+        name,
         document,
+        phone,
         address,
         notes,
       },
@@ -82,12 +84,14 @@ export class ClientController {
   update = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userRole = req.user?.role;
-    const { document, address, notes } = req.body;
+    const { name, document, phone, address, notes } = req.body;
 
     const client = await this.clientService.update(
       id,
       {
+        name,
         document,
+        phone,
         address,
         notes,
       },

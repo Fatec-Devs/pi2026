@@ -16,8 +16,10 @@ export interface User {
 
 export interface Client {
   _id: string;
-  userId: string;
+  userId?: string;
+  name?: string;
   document?: string;
+  phone?: string;
   address?: string;
   notes?: string;
   createdAt?: string;
@@ -32,6 +34,7 @@ export interface Machine {
   model?: string;
   serialNumber?: string;
   location?: string;
+  notes?: string;
   status: string;
   active: boolean;
   createdAt?: string;
@@ -63,8 +66,8 @@ export interface CreateServiceOrderDTO {
 export interface ServiceOrder {
   _id: string;
   sequence?: number;
-  clientId: string;
-  machineId: string;
+  clientId: string | Client;
+  machineId: string | Machine;
   status: ServiceOrderStatus;
   services: ServiceItemInput[];
   materials: MaterialUsageInput[];
@@ -79,6 +82,7 @@ export interface ServiceOrder {
   updatedAt?: string;
 }
 
+
 export interface FinancialEntry {
   _id: string;
   serviceOrderId?: string;
@@ -89,6 +93,12 @@ export interface FinancialEntry {
   category?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface FinancialSummary {
+  income: number;
+  expense: number;
+  balance: number;
 }
 
 export interface AuthResponse {

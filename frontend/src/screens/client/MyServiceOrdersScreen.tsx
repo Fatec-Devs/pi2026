@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   FlatList,
   RefreshControl,
   Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { ServiceOrderCard } from '../../components/cards/ServiceOrderCard';
@@ -13,12 +16,16 @@ import { serviceOrderService } from '../../services/serviceOrder.service';
 import clientService from '../../services/clientService';
 import { ServiceOrder } from '../../types/domain';
 
+const STATUS_OPTIONS = ['ALL', 'ORCAMENTO', 'APROVADO', 'EM_EXECUCAO', 'CONCLUIDO'] as const;
+
 export function MyServiceOrdersScreen() {
   const { user } = useAuth();
   const [serviceOrders, setServiceOrders] = useState<ServiceOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<(typeof STATUS_OPTIONS)[number]>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Carrega ordens ao montar
   useEffect(() => {
@@ -63,6 +70,31 @@ export function MyServiceOrdersScreen() {
     console.log('Navegar para detalhes da OS:', serviceOrder._id);
   };
 
+  const getClientCpf = (serviceOrder: ServiceOrder) => {
+    const client = serviceOrder.clientId as any;
+    return typeof client === 'object' && client ? String(client.document || '') : '';
+  };
+
+  const getClientName = (serviceOrder: ServiceOrder) => {
+    const client = serviceOrder.clientId as any;
+    return typeof client === 'object' && client ? String(client.name || client.document || '') : '';
+  };
+
+  const filteredOrders = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return serviceOrders.filter((serviceOrder) => {
+      const matchesStatus = selectedStatus === 'ALL' || serviceOrder.status === selectedStatus;
+      const matchesQuery =
+        query === '' ||
+        serviceOrder._id.toLowerCase().includes(query) ||
+        getClientName(serviceOrder).toLowerCase().includes(query) ||
+        getClientCpf(serviceOrder).toLowerCase().includes(query);
+
+      return matchesStatus && matchesQuery;
+    });
+  }, [serviceOrders, searchQuery, selectedStatus]);
+
   // Estado de carregamento inicial
   if (isLoading) {
     return <Loading message="Carregando ordens de serviço..." fullScreen />;
@@ -92,8 +124,35 @@ export function MyServiceOrdersScreen() {
           {user?.role === 'ADMIN' ? 'Todas as Ordens de Serviço' : 'Minhas Ordens de Serviço'}
         </Text>
         <Text className="text-gray-600 mt-1">
-          {serviceOrders.length} {serviceOrders.length === 1 ? 'ordem' : 'ordens'} de serviço
+          {filteredOrders.length} {filteredOrders.length === 1 ? 'ordem' : 'ordens'} de serviço
         </Text>
+      </View>
+
+      <View className="bg-white px-4 pb-4 border-b border-gray-200">
+        <TextInput
+          placeholder="Buscar por cliente, CPF ou nº da OS"
+          placeholderTextColor="#9ca3af"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white mb-3"
+        />
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {STATUS_OPTIONS.map((status) => {
+            const active = selectedStatus === status;
+            const label = status === 'ALL' ? 'Todas' : status;
+
+            return (
+              <TouchableOpacity
+                key={status}
+                onPress={() => setSelectedStatus(status)}
+                className={`px-4 py-2 rounded-full border ${active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}
+              >
+                <Text className={active ? 'text-white font-medium' : 'text-gray-700 font-medium'}>{label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       {/* Mensagem de erro (se houver, mas com dados) */}
@@ -105,7 +164,7 @@ export function MyServiceOrdersScreen() {
 
       {/* Lista de ordens */}
       <FlatList
-        data={serviceOrders}
+        data={filteredOrders}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <ServiceOrderCard
@@ -118,7 +177,7 @@ export function MyServiceOrdersScreen() {
           <EmptyState
             icon="📋"
             title="Nenhuma ordem de serviço"
-            description="Você ainda não solicitou nenhum serviço. Que tal solicitar o primeiro?"
+            description="Nenhuma ordem encontrada para o filtro atual."
           />
         }
         refreshControl={

@@ -9,6 +9,7 @@ export interface CreateMachineRequest {
   model?: string;
   serialNumber?: string;
   location?: string;
+  notes?: string;
   status?: string;
 }
 
@@ -18,6 +19,7 @@ export interface UpdateMachineRequest {
   model?: string;
   serialNumber?: string;
   location?: string;
+  notes?: string;
   status?: string;
   active?: boolean;
 }

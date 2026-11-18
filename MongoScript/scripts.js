@@ -53,6 +53,7 @@ ensureCollection('machines', {
         model: { bsonType: 'string' },
         serialNumber: { bsonType: 'string' },
         location: { bsonType: 'string' },
+        notes: { bsonType: 'string' },
         status: { enum: ['ATIVO', 'INATIVO', 'EM_MANUTENCAO'] },
         active: { bsonType: 'bool' },
       },

@@ -6,7 +6,16 @@ export class ServiceOrderRepository {
    * Cria uma nova ordem de serviço
    */
   async create(data: Partial<IServiceOrder>): Promise<IServiceOrder> {
-    const serviceOrder = new ServiceOrder(data);
+    const lastSequenceOrder = await ServiceOrder.findOne({ sequence: { $exists: true } })
+      .sort({ sequence: -1 })
+      .select('sequence');
+
+    const nextSequence = (lastSequenceOrder?.sequence ?? 0) + 1;
+
+    const serviceOrder = new ServiceOrder({
+      ...data,
+      sequence: nextSequence,
+    });
     return await serviceOrder.save();
   }
 

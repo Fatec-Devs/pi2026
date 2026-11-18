@@ -106,7 +106,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 }
 
 // Hook para usar o contexto de autenticação
-export function useAuth(): AuthContextData {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
 
   if (!context) {

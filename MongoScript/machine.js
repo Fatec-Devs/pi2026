@@ -15,6 +15,7 @@ db.machines.insertMany([
     model: "Centur 30D",
     serialNumber: "ROMI-2025-001",
     location: "Setor Produção A",
+    notes: "Máquina de usinagem principal, revisar alinhamento semanalmente.",
     status: "ATIVO",
     active: true
   },
@@ -24,6 +25,7 @@ db.machines.insertMany([
     model: "VF-2",
     serialNumber: "HAAS-2025-002",
     location: "Setor Produção B",
+    notes: "Usada para peças de precisão. Verificar lubrificação antes do uso.",
     status: "EM_MANUTENCAO",
     active: true
   }
