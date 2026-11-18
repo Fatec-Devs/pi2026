@@ -1,7 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-const API_BASE_URL =
-  (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3333/api').trim();
+const DEFAULT_API_URL =
+  Platform.OS === 'android'
+    ? 'http://10.0.2.2:3333/api'
+    : 'http://localhost:3333/api';
+
+const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+const expoHost = Constants.expoConfig?.hostUri
+  ? `http://${Constants.expoConfig.hostUri.split(':')[0]}:3333/api`
+  : undefined;
+const API_BASE_URL = (configuredApiUrl || expoHost || DEFAULT_API_URL).trim();
 const TOKEN_KEY = '@pi2026:token';
 
 // API Client class para gerenciar requisições

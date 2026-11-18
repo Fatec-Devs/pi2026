@@ -10,7 +10,7 @@ const seedUsers = [
   {
     name: 'Admin',
     email: 'admin@pi-app-2026.com',
-    passwordHash: '$2b$12$PFvE0ApwZKsSPl3R.Rqe4uE.S3vPazpltKawHV8kw1eFyYkvZuu32',
+    passwordHash: '$2b$12$n19BfsGepUbZ.aEj1U/VFORKiHFDK3KABbdSUQSixfLrIT5xqPIJC',
     role: 'ADMIN',
     phone: '',
     active: true,
@@ -28,7 +28,7 @@ const seedUsers = [
 for (const user of seedUsers) {
   users.updateOne(
     { email: user.email },
-    { $setOnInsert: user },
+    { $set: user },
     { upsert: true },
   );
 }
@@ -39,7 +39,7 @@ if (clientUser) {
   clients.updateOne(
     { userId: clientUser._id },
     {
-      $setOnInsert: {
+      $set: {
         userId: clientUser._id,
         document: '123.456.789-00',
         address: 'Rua Exemplo, 123',

@@ -184,4 +184,65 @@ export class ServiceOrderController {
 
     return res.status(200).json(serviceOrder);
   };
+
+  /**
+   * PATCH /service-orders/:id/services/:serviceIndex/time
+   */
+  updateServiceTime = async (req: Request, res: Response) => {
+    const { id, serviceIndex } = req.params;
+    const { timeSpentHours, timeSpentDate, timeNotes } = req.body;
+    const userRole = req.user?.role;
+
+    if (timeSpentHours === undefined) {
+      return res.status(400).json({
+        code: 'MISSING_FIELDS',
+        message: 'tempo gasto é obrigatório',
+      });
+    }
+
+    const parsedIndex = Number(serviceIndex);
+    if (!Number.isInteger(parsedIndex) || parsedIndex < 0) {
+      return res.status(400).json({
+        code: 'INVALID_SERVICE_INDEX',
+        message: 'Índice do serviço inválido',
+      });
+    }
+
+    const serviceOrder = await this.serviceOrderService.updateServiceTime(
+      id,
+      parsedIndex,
+      Number(timeSpentHours),
+      timeSpentDate,
+      timeNotes,
+      userRole!
+    );
+
+    return res.status(200).json(serviceOrder);
+  };
+
+  /**
+   * PATCH /service-orders/:id/services/:serviceIndex/schedule
+   */
+  updateServiceSchedule = async (req: Request, res: Response) => {
+    const { id, serviceIndex } = req.params;
+    const { possibleDates, scheduledDate } = req.body;
+
+    const parsedIndex = Number(serviceIndex);
+    if (!Number.isInteger(parsedIndex) || parsedIndex < 0) {
+      return res.status(400).json({
+        code: 'INVALID_SERVICE_INDEX',
+        message: 'Índice do serviço inválido',
+      });
+    }
+
+    const serviceOrder = await this.serviceOrderService.updateServiceSchedule(
+      id,
+      parsedIndex,
+      possibleDates,
+      scheduledDate,
+      req.user?.role
+    );
+
+    return res.status(200).json(serviceOrder);
+  };
 }

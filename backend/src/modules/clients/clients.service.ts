@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { ClientModel, ClientDocument } from '../../database/models/client.model';
+import { ClientModel, ClientDocument } from '../../database/models/Client.model';
 import { AppError } from '../../config/AppError';
 
 function toPublicClient(client: ClientDocument) {

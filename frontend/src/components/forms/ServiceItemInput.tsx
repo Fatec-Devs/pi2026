@@ -25,21 +25,19 @@ export function ServiceItemInput({
   }>({});
 
   const handleChange = (field: keyof ServiceItemType, text: string) => {
-    const newValue = { ...value };
+    const newValue = { ...value } as unknown as Record<string, unknown>;
 
     if (field === 'description') {
       newValue[field] = text;
     } else {
-      // Campos numéricos
       const numValue = parseFloat(text) || 0;
       newValue[field] = numValue;
     }
 
-    onChange(newValue);
-    
-    // Limpa erro do campo editado
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    onChange(newValue as unknown as ServiceItemType);
+
+    if (errors[field as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [field as keyof typeof errors]: undefined }));
     }
   };
 
@@ -108,6 +106,20 @@ export function ServiceItemInput({
           containerClassName="flex-1"
         />
       </View>
+
+      <TextInput
+        label="Datas possíveis (AAAA-MM-DD, separadas por vírgula)"
+        value={(value.possibleDates || []).join(', ')}
+        onChangeText={(text) => {
+          const possibleDates = text
+            .split(',')
+            .map((date) => date.trim())
+            .filter((date) => date.length > 0);
+          onChange({ ...value, possibleDates });
+        }}
+        placeholder="2026-12-10, 2026-12-12"
+        containerClassName="mb-3"
+      />
     </View>
   );
 }

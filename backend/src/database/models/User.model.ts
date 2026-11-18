@@ -8,6 +8,8 @@ export interface UserDocument extends Document {
   role: UserRole;
   phone?: string;
   active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const userSchema = new Schema<UserDocument>(

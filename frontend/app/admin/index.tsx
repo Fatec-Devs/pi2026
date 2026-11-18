@@ -34,6 +34,13 @@ export default function AdminIndex() {
       icon: '💰',
       route: '/admin/finance',
     },
+    {
+      id: 'time-management',
+      title: 'Gestão de tempo',
+      description: 'Agendar horas por serviço e visualizar calendário',
+      icon: '🗓️',
+      route: '/admin/time-management',
+    },
   ];
 
   return (

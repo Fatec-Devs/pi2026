@@ -38,6 +38,13 @@ export default function AdminLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="time-management"
+        options={{
+          title: 'Gestão de tempo',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

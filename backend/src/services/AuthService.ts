@@ -46,7 +46,7 @@ export class AuthService {
       },
       env.jwt.secret,
       {
-        expiresIn: env.jwt.expiresIn,
+        expiresIn: env.jwt.expiresIn as jwt.SignOptions['expiresIn'],
       }
     );
 
@@ -108,7 +108,7 @@ export class AuthService {
       },
       env.jwt.secret,
       {
-        expiresIn: env.jwt.expiresIn,
+        expiresIn: env.jwt.expiresIn as jwt.SignOptions['expiresIn'],
       }
     );
 
