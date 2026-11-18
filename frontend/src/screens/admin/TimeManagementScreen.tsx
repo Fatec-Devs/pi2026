@@ -22,6 +22,19 @@ function toDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+function toStoredDateKey(value?: string | Date | null): string | null {
+  if (!value) return null;
+
+  if (typeof value === 'string') {
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return toDateKey(parsed);
+}
+
 function toDisplayDate(dateString?: string): string {
   if (!dateString) return 'Sem data';
   const date = new Date(dateString);
@@ -95,14 +108,15 @@ export default function TimeManagementScreen() {
       if (!isVisibleOrder(order.status)) return;
 
       order.services.forEach((service) => {
-        if (!service.scheduledDate) return;
-        const date = new Date(service.scheduledDate);
-        if (Number.isNaN(date.getTime())) return;
-        const dateKey = toDateKey(date);
+        const dateKey = toStoredDateKey(service.scheduledDate);
+        if (!dateKey) return;
 
         const existing = map.get(dateKey) || { count: 0, hours: 0 };
         const shouldAccountHours = HOURS_ACCOUNTABLE_STATUSES.has(String(order.status).toUpperCase());
-        const accountedHours = shouldAccountHours ? Number(service.estimatedHours || 0) : 0;
+        const rawHours = Number(service.timeSpentHours || 0) > 0
+          ? Number(service.timeSpentHours || 0)
+          : Number(service.estimatedHours || 0);
+        const accountedHours = shouldAccountHours ? rawHours : 0;
 
         map.set(dateKey, {
           count: existing.count + 1,
@@ -129,12 +143,31 @@ export default function TimeManagementScreen() {
     let sum = 0;
     const year = selectedMonth.getFullYear();
     const month = selectedMonth.getMonth();
-    scheduledEntries.forEach((value, dateKey) => {
-      const date = new Date(`${dateKey}T00:00:00`);
-      if (date.getFullYear() === year && date.getMonth() === month) sum += value.hours;
+
+    orders.forEach((order) => {
+      const isApproved = HOURS_ACCOUNTABLE_STATUSES.has(String(order.status).toUpperCase());
+      if (!isApproved) return;
+
+      order.services.forEach((service) => {
+        const dateKey =
+          toStoredDateKey(service.scheduledDate) ||
+          toStoredDateKey(service.timeSpentDate) ||
+          toStoredDateKey(order.createdAt || null);
+
+        if (!dateKey) return;
+
+        const date = new Date(`${dateKey}T00:00:00`);
+        if (date.getFullYear() === year && date.getMonth() === month) {
+          const rawHours = Number(service.timeSpentHours || 0) > 0
+            ? Number(service.timeSpentHours || 0)
+            : Number(service.estimatedHours || 0);
+          sum += Number.isFinite(rawHours) ? rawHours : 0;
+        }
+      });
     });
+
     return sum;
-  }, [scheduledEntries, selectedMonth]);
+  }, [orders, selectedMonth]);
 
   const selectedDayEntries = useMemo(() => {
     const dayEntries: Array<{ order: ServiceOrder; serviceIndex: number; service: any }> = [];
@@ -144,9 +177,8 @@ export default function TimeManagementScreen() {
       if (!isVisibleOrder(order.status)) return;
 
       order.services.forEach((service, serviceIndex) => {
-        if (!service.scheduledDate) return;
-        const date = new Date(service.scheduledDate);
-        if (!Number.isNaN(date.getTime()) && toDateKey(date) === selectedDate) {
+        const dateKey = toStoredDateKey(service.scheduledDate);
+        if (dateKey === selectedDate) {
           dayEntries.push({ order, serviceIndex, service });
         }
       });
