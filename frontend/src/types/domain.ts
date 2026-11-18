@@ -45,6 +45,8 @@ export interface ServiceItemInput {
   description: string;
   estimatedHours: number;
   price: number;
+  possibleDates?: string[];
+  scheduledDate?: string | null;
   timeSpentHours?: number;
   timeSpentDate?: string;
   timeNotes?: string;

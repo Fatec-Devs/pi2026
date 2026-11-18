@@ -437,6 +437,59 @@ export class ServiceOrderService {
     });
   }
 
+  async updateServiceSchedule(
+    id: string,
+    serviceIndex: number,
+    possibleDates: unknown,
+    scheduledDate: unknown,
+    userRole?: string
+  ) {
+    if (userRole !== 'ADMIN') {
+      throw new AppError('Sem permissão para agendar serviços', 'FORBIDDEN', 403);
+    }
+
+    if (!Array.isArray(possibleDates)) {
+      throw new AppError('Lista de datas possível é obrigatória', 'INVALID_POSSIBLE_DATES', 400);
+    }
+
+    const normalizedPossibleDates = possibleDates.map((value) => {
+      const date = new Date(String(value));
+      if (Number.isNaN(date.getTime())) {
+        throw new AppError('Uma das datas possíveis é inválida', 'INVALID_POSSIBLE_DATE', 400);
+      }
+      return date;
+    });
+
+    let normalizedScheduledDate: Date | null = null;
+    if (scheduledDate !== undefined && scheduledDate !== null && String(scheduledDate).trim() !== '') {
+      normalizedScheduledDate = new Date(String(scheduledDate));
+      if (Number.isNaN(normalizedScheduledDate.getTime())) {
+        throw new AppError('Data agendada inválida', 'INVALID_SCHEDULED_DATE', 400);
+      }
+
+      const scheduledKey = normalizedScheduledDate.toISOString().slice(0, 10);
+      const isPossible = normalizedPossibleDates.some((date) => date.toISOString().slice(0, 10) === scheduledKey);
+      if (!isPossible) {
+        throw new AppError('A data agendada deve estar na lista de datas possíveis', 'INVALID_SCHEDULED_DATE', 400);
+      }
+    }
+
+    const serviceOrder = await this.serviceOrderRepository.findById(id);
+    if (!serviceOrder) {
+      throw new AppError('Ordem de serviço não encontrada', 'SERVICE_ORDER_NOT_FOUND', 404);
+    }
+
+    if (!serviceOrder.services || serviceIndex >= serviceOrder.services.length) {
+      throw new AppError('Serviço não encontrado nesta ordem de serviço', 'INVALID_SERVICE', 400);
+    }
+
+    const service = serviceOrder.services[serviceIndex];
+    service.possibleDates = normalizedPossibleDates;
+    service.scheduledDate = normalizedScheduledDate;
+
+    return await this.serviceOrderRepository.update(id, { services: serviceOrder.services });
+  }
+
   private async syncFinanceEntry(serviceOrder: IServiceOrder) {
     const amount = Math.max(serviceOrder.totalCost || 0, 0);
     const orderNumber = serviceOrder.sequence

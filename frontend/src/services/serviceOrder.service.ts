@@ -142,6 +142,24 @@ class ServiceOrderService {
     }
     return response;
   }
+
+  async updateServiceSchedule(
+    id: string,
+    serviceIndex: number,
+    payload: {
+      possibleDates: string[];
+      scheduledDate?: string | null;
+    }
+  ): Promise<ServiceOrder> {
+    const response = await api.patch<ServiceOrder>(
+      `/service-orders/${id}/services/${serviceIndex}/schedule`,
+      payload
+    );
+    if (!response) {
+      throw new Error('Resposta inválida ao atualizar o agendamento');
+    }
+    return response;
+  }
 }
 
 // Instância única do serviço

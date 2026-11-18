@@ -25,7 +25,7 @@ export function ServiceItemInput({
   }>({});
 
   const handleChange = (field: keyof ServiceItemType, text: string) => {
-    const newValue = { ...value } as Record<string, string | number>;
+    const newValue = { ...value } as unknown as Record<string, unknown>;
 
     if (field === 'description') {
       newValue[field] = text;
@@ -106,6 +106,20 @@ export function ServiceItemInput({
           containerClassName="flex-1"
         />
       </View>
+
+      <TextInput
+        label="Datas possíveis (AAAA-MM-DD, separadas por vírgula)"
+        value={(value.possibleDates || []).join(', ')}
+        onChangeText={(text) => {
+          const possibleDates = text
+            .split(',')
+            .map((date) => date.trim())
+            .filter((date) => date.length > 0);
+          onChange({ ...value, possibleDates });
+        }}
+        placeholder="2026-12-10, 2026-12-12"
+        containerClassName="mb-3"
+      />
     </View>
   );
 }

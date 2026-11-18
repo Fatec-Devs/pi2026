@@ -71,6 +71,15 @@ router.patch('/:id/costs', requireRole('ADMIN'), async (req, res, next) => {
   }
 });
 
+// PATCH /service-orders/:id/services/:serviceIndex/schedule
+router.patch('/:id/services/:serviceIndex/schedule', requireRole('ADMIN'), async (req, res, next) => {
+  try {
+    await serviceOrderController.updateServiceSchedule(req, res);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // PATCH /service-orders/:id/services/:serviceIndex/time
 router.patch('/:id/services/:serviceIndex/time', requireRole('ADMIN'), async (req, res, next) => {
   try {
